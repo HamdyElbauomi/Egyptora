@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: egyptora
+          POSTGRES_PASSWORD: egyptora
+          POSTGRES_DB: egyptora
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U egyptora" --health-interval 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql+psycopg://egyptora:egyptora@localhost:5432/egyptora
+      JWT_SECRET: ci-only-secret-0123456789-0123456789
+      AI_MOCK: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements-dev.txt
+      - name: Lint
+        run: ruff check . && ruff format --check .
+      - name: Migrations apply cleanly and match the models
+        run: alembic upgrade head && alembic check
+      - name: Create test database
+        run: PGPASSWORD=egyptora psql -h localhost -U egyptora -d egyptora -c "CREATE DATABASE egyptora_test"
+      - name: Tests
+        run: pytest
+        env:
+          DATABASE_URL: postgresql+psycopg://egyptora:egyptora@localhost:5432/egyptora_test

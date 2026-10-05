@@ -1,0 +1,41 @@
+# Who must review changes to which files.
+# TODO: replace each @PERSONn_GITHUB with that person's GitHub username.
+
+# Person 1 · Accounts, companies, trust + shared setup
+/app/core/                       @PERSON1_GITHUB
+/app/main.py                     @PERSON1_GITHUB
+/app/models.py                   @PERSON1_GITHUB
+/migrations/env.py               @PERSON1_GITHUB
+/app/modules/accounts/           @PERSON1_GITHUB
+/app/modules/companies/          @PERSON1_GITHUB
+/app/ai/sentiment.py             @PERSON1_GITHUB
+/tests/test_p1_*                 @PERSON1_GITHUB
+
+# Person 2 · Trip builder
+/app/modules/trips/              @PERSON2_GITHUB
+/app/ai/planner.py               @PERSON2_GITHUB
+/tests/test_p2_*                 @PERSON2_GITHUB
+
+# Person 3 · Chat, sharing, catalog basics, admin overview
+/app/modules/chat/               @PERSON3_GITHUB
+/app/modules/sharing/            @PERSON3_GITHUB
+/app/modules/admin_stats/        @PERSON3_GITHUB
+/app/modules/catalog/            @PERSON3_GITHUB
+/app/ai/chat_agent.py            @PERSON3_GITHUB
+/tests/test_p3_*                 @PERSON3_GITHUB
+
+# Person 4 · Monuments and places
+/app/modules/places/             @PERSON4_GITHUB
+/app/ai/recognizer.py            @PERSON4_GITHUB
+/app/ai/place_qa.py              @PERSON4_GITHUB
+/tests/test_p4_*                 @PERSON4_GITHUB
+
+# Person 5 · Hotels and NL-to-SQL
+/app/modules/hotels/             @PERSON5_GITHUB
+/app/modules/ai_quality/         @PERSON5_GITHUB
+/app/ai/nl2sql.py                @PERSON5_GITHUB
+/tests/test_p5_*                 @PERSON5_GITHUB
+
+# Person 6 · Offers and competition
+/app/modules/offers/             @PERSON6_GITHUB
+/tests/test_p6_*                 @PERSON6_GITHUB
