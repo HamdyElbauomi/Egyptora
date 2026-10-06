@@ -1,68 +1,156 @@
-# Egyptora backend
+<div align="center">
 
-FastAPI + PostgreSQL backend for Egyptora, the AI trip planner for Egypt.
-Three front ends (traveler, company, admin) are vibe-coded from this API's OpenAPI spec at `/openapi.json`.
+# Egyptora
 
-- **Full spec, ERD and the 6-person split:** see the team doc (ERD, features & endpoints + Backend split tabs).
-- **How we work every day:** [CONTRIBUTING.md](CONTRIBUTING.md)
+**An AI travel planner for Egypt: personalized itineraries, a conversational trip editor, monument recognition, and a marketplace where licensed tourism companies compete on price.**
 
-## Run it (first time)
+[![CI](https://github.com/HamdyElbauomi/Egyptora/actions/workflows/ci.yml/badge.svg)](https://github.com/HamdyElbauomi/Egyptora/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
+
+</div>
+
+---
+
+## Overview
+
+Planning a trip in Egypt usually means juggling blogs, booking sites, tour operators and guides. Egyptora turns a few
+preferences (interests, budget, trip length, destinations) into a complete day-by-day itinerary. Travelers then refine it
+in natural language, learn about monuments by pointing their camera at them, and compare hotel offers from competing
+tourism companies.
+
+This repository contains the **backend API** that powers the three Egyptora applications:
+
+| App | Users | Purpose |
+| --- | --- | --- |
+| Traveler app | Tourists | Plan, edit, scan, search hotels, save and share trips |
+| Company portal | Licensed tourism companies | Publish hotel offers, track market position, read reviews |
+| Admin console | Egyptora team | Verify companies, manage the catalog, monitor AI quality |
+
+## Features
+
+**AI**
+
+- **Trip planner agent:** builds a full itinerary from preferences, picking places, timing and the best hotel offer per night.
+- **Conversational editing:** travelers change the plan in plain language. Every change comes with an explanation and its cost impact, and can be kept or undone.
+- **Monument recognition:** a vision model identifies monuments from a photo and returns verified historical information. Follow-up questions are answered only from that verified source.
+- **Natural-language hotel search:** questions like *"4-star in Luxor under 1,500 EGP with free cancellation"* are translated to SQL and run against a read-only view.
+- **Review sentiment analysis:** summarizes traveler reviews into positive share and top complaints.
+
+**Marketplace**
+
+- Multiple companies sell the same hotel; travelers see **Lowest** and **Best value** offers side by side.
+- A **trust score** blends an admin-verified starting score with traveler ratings as reviews accumulate.
+- Companies see their market position and get alerts when a competitor undercuts them.
+
+**Quality loop**
+
+- Every AI search is logged. Failed queries are corrected by an admin and fed back as training examples.
+- Low-confidence monument scans are reviewed and relabeled to improve the next model version.
+
+## Architecture
+
+```mermaid
+flowchart LR
+    T[Traveler app] --> API
+    C[Company portal] --> API
+    A[Admin console] --> API
+    subgraph Backend [FastAPI backend]
+        API[REST API /api/v1] --> M[Domain modules]
+        M --> AI[AI layer<br/>planner · chat · vision · NL-to-SQL · sentiment]
+    end
+    M --> DB[(PostgreSQL)]
+    AI -. read-only .-> DB
+```
+
+- **Modular monolith:** each domain (accounts, trips, places, hotels, offers…) owns its models, schemas and routes.
+- **AI behind a stable interface:** every AI capability is a plain function with a mock mode, so the API contract never changes when a model is swapped in.
+- **Contract-first:** the OpenAPI spec at `/openapi.json` is the single source of truth for all three front ends.
+
+## Tech stack
+
+| Layer | Technology |
+| --- | --- |
+| API | FastAPI, Pydantic v2 |
+| Database | PostgreSQL 16, SQLAlchemy 2.0, Alembic |
+| Auth | JWT (access + refresh tokens), role-based access |
+| AI | LLM agents, computer vision, NL-to-SQL, sentiment analysis |
+| Quality | pytest, Ruff, GitHub Actions |
+| Dev environment | Docker Compose |
+
+## Getting started
+
+**Prerequisites:** Python 3.11+, Docker.
 
 ```bash
-git clone <repo-url> && cd egyptora-backend
+git clone https://github.com/HamdyElbauomi/Egyptora.git
+cd Egyptora
+
 python -m venv .venv
-source .venv/bin/activate          # Windows: .venv\Scripts\activate
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -r requirements-dev.txt
-cp .env.example .env               # Windows: copy .env.example .env
-docker compose up -d db            # PostgreSQL 16 on localhost:5432 (+ egyptora_test for pytest)
-alembic upgrade head               # creates all 21 tables + the hotel_best_price view
-python -m scripts.seed             # sample users, companies, cities, interests
+cp .env.example .env             # Windows: copy .env.example .env
+
+docker compose up -d db
+alembic upgrade head
+python -m scripts.seed
+
 uvicorn app.main:app --reload
 ```
 
-Open http://localhost:8000/docs. Log in with `POST /api/v1/auth/login`
-(`admin@egyptora.dev` / `egyptora123`), copy `access_token`, click **Authorize**.
+Interactive API docs: **http://localhost:8000/docs**
 
-Run the checks: `pytest` and `ruff check . && ruff format --check .`
+Sample accounts (development only, password `egyptora123`): `admin@egyptora.dev`, `traveler1@egyptora.dev`, `sunrise@egyptora.dev`.
 
-## What already works
+## Configuration
 
-- All 21 tables + the view, as SQLAlchemy models and one Alembic migration.
-- Login, register, refresh, `/me`, and `require_role(...)` for every route.
-- All 97 endpoints exist with their path, inputs and a description of why they exist.
-  Each one returns **501 Not implemented (owner: Person N)** until its owner builds it.
-- Every AI piece in `app/ai/` returns sample data while `AI_MOCK=true`, so nobody waits for a model.
+Settings are read from environment variables or `.env`:
 
-## Folder layout and owners
+| Variable | Description | Default |
+| --- | --- | --- |
+| `DATABASE_URL` | PostgreSQL connection string | local Docker database |
+| `READONLY_DATABASE_URL` | Read-only connection used for AI-generated SQL | falls back to `DATABASE_URL` |
+| `JWT_SECRET` | Secret used to sign tokens | development value |
+| `AI_MOCK` | Return sample AI responses instead of calling models | `true` |
+| `EXPOSE_AI_ROUTES` | Expose `/api/v1/ai/*` endpoints for testing | `true` |
+| `LLM_API_KEY` | API key for the language model provider | — |
+
+## Project structure
 
 ```
 app/
-  core/            config, database, security, deps (require_role, not_implemented)   Person 1
-  main.py          registers every router                                              Person 1
-  models.py        imports every model for Alembic                                     Person 1
-  ai/
-    sentiment.py   review sentiment                                                    Person 1
-    planner.py     trip planner agent                                                  Person 2
-    chat_agent.py  chat that edits the trip                                            Person 3
-    recognizer.py  monument recognition                                                Person 4
-    place_qa.py    "ask more" about a place                                            Person 4
-    nl2sql.py      hotel question -> SQL                                               Person 5
-  modules/
-    accounts/      users, auth, /me                                         (T1)       Person 1
-    companies/     companies, reviews, trust score, company + admin routes  (T9 C1 C2 C5 A2)  Person 1
-    trips/         trips, days, items, totals, preferences lookups          (T2 T3 T4) Person 2
-    chat/          chat messages, trip changes                              (T5)       Person 3
-    sharing/       summary, save, share links                               (T10)      Person 3
-    admin_stats/   admin overview                                           (A1)       Person 3
-    catalog/       cities, interests                                        (A4 part)  Person 3
-    places/        places, images, scans                                    (T6 A4 A5 part) Person 4
-    hotels/        hotels, NL search                                        (T7 A3 part) Person 5
-    ai_quality/    nl_queries, training examples                            (A5 part)  Person 5
-    offers/        offers, price alerts, ranking, best-price view           (T8 C3 C4 A3 part) Person 6
-migrations/versions/   one file per schema change (whoever changes their models.py)
-scripts/seed.py        runs every module's seed.py in order
-tests/test_pN_*.py     each person's tests
+├── core/          configuration, database, security, shared dependencies
+├── ai/            planner, chat agent, recognizer, place Q&A, NL-to-SQL, sentiment
+├── modules/
+│   ├── accounts/      users and authentication
+│   ├── companies/     companies, reviews, trust score
+│   ├── catalog/       cities and interests
+│   ├── trips/         trips, days, items, generation
+│   ├── chat/          conversational trip editing
+│   ├── sharing/       summaries and share links
+│   ├── places/        places, images, monument scans
+│   ├── hotels/        hotels and natural-language search
+│   ├── offers/        offers, ranking, price alerts
+│   ├── ai_quality/    query logs and training examples
+│   └── admin_stats/   platform overview
+└── main.py        application entry point
+migrations/        Alembic migrations
+scripts/           seed data and database setup
+tests/             test suite
 ```
 
-Inside each module: `models.py` (tables), `schemas.py` (request/response shapes),
-`router*.py` (endpoints), `service.py` / helpers (logic), `seed.py` (sample data).
+## Testing
+
+```bash
+pytest                              # test suite (uses a separate egyptora_test database)
+ruff check . && ruff format --check .
+alembic check                       # models and migrations are in sync
+```
+
+All three run on every pull request.
+
+## Status
+
+Under active development as a graduation project at the Faculty of Engineering, Mansoura University.
+The full API surface, database schema, authentication and CI are in place; feature endpoints and AI models are being implemented.
