@@ -48,24 +48,16 @@ git add -A && git commit -m "p2: POST /trips/generate saves days and items"
 git push -u origin HEAD
 ```
 
-Open a pull request into `main`, fill the template, request a review from your pair.
-Review your pair's PR **the same day**. Merge with **Squash and merge** after CI is green and 1 approval.
+Open a pull request into `main` and fill the template. No review is required:
+once the CI check is green, merge it yourself with **Squash and merge**.
 
 Post one line: **Done: P2 #4 · Next: #5 · Blocked: waiting for P6 best_offers_for_cities()**.
 
-## Review pairs
-
-| Pair | Why together |
-| --- | --- |
-| Person 1 ↔ Person 6 | trust score feeds offer ranking |
-| Person 2 ↔ Person 3 | chat edits the trip |
-| Person 4 ↔ Person 5 | both own AI models + the admin AI quality screen |
-
 ## Rules
 
-- Never push to `main` directly. Every change goes through a PR.
+- Never push to `main` directly. Every change goes through a PR, so CI checks it before it lands.
 - Only edit your own files. Need a change in someone else's? Ask them, or open an issue and tag them.
-- Shared files (`app/core/`, `app/main.py`, `app/models.py`, `migrations/env.py`) need Person 1's review.
+- Shared files (`app/core/`, `app/main.py`, `app/models.py`, `migrations/env.py`): tell Person 1 before changing them.
 - Small PRs: one endpoint (or 2-3 small ones) per PR.
 - Two migrations with the same parent after pulling? Run `alembic merge heads -m "merge"` and commit it.
 - Added or removed an endpoint? Update the count in `tests/test_smoke.py`.
