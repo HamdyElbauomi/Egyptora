@@ -7,7 +7,7 @@ Six people, one repo, `main` always works. Read this once, then follow the daily
 1. Install **Python 3.11+**, **Git**, **Docker Desktop** (or PostgreSQL 16 locally) and your editor (VS Code / Cursor).
 2. Accept the GitHub invite and clone the repo.
 3. Follow **Run it (first time)** in the README until http://localhost:8000/docs opens and `pytest` is green.
-4. Find your files in the README's folder layout (and `.github/CODEOWNERS`). Read the docstrings in your routers:
+4. Find your files in the README's folder layout. Read the docstrings in your routers:
    each endpoint says **Why** it exists and **Then** what it unlocks.
 5. Make your first branch and first PR: your module's `seed.py` with real sample data.
    Persons 1 and 3 already have seed data: Person 1 starts with `POST /company/register`, Person 3 with `GET /admin/stats`.
