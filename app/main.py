@@ -2,10 +2,12 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 import app.models  # noqa: F401  (loads every table so foreign keys resolve)
 from app.ai import chat_agent, nl2sql, place_qa, planner, recognizer, sentiment
 from app.core.config import settings
+from app.core.storage import URL_PREFIX, upload_root
 from app.modules.accounts import router as accounts
 from app.modules.admin_stats import router as admin_stats
 from app.modules.ai_quality import router_admin as ai_quality_admin
@@ -69,6 +71,9 @@ ROUTERS = [
 ]
 for r in ROUTERS:
     app.include_router(r, prefix=API_PREFIX)
+
+# Uploaded files (place photos, scans, documents) are served from here.
+app.mount(URL_PREFIX, StaticFiles(directory=upload_root()), name="uploads")
 
 if settings.expose_ai_routes:
     for ai in (sentiment, planner, chat_agent, recognizer, place_qa, nl2sql):
