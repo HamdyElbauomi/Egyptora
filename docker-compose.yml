@@ -1,4 +1,5 @@
 # Local PostgreSQL for development: docker compose up -d db
+# Listens on localhost:5433 (not the usual 5432) so it never clashes with a PostgreSQL installed on your laptop.
 services:
   db:
     image: postgres:16
@@ -7,7 +8,7 @@ services:
       POSTGRES_PASSWORD: egyptora
       POSTGRES_DB: egyptora
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./scripts/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro

@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     app_name: str = "Egyptora API"
     environment: str = "dev"  # dev | test | prod
 
-    database_url: str = "postgresql+psycopg://egyptora:egyptora@localhost:5432/egyptora"
+    database_url: str = "postgresql+psycopg://egyptora:egyptora@localhost:5433/egyptora"
     # Read-only user for running AI-generated SQL (Person 5). Falls back to the main URL in dev.
     readonly_database_url: str | None = None
 

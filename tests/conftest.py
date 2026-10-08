@@ -6,7 +6,7 @@ Run: pytest
 import os
 import tempfile
 
-os.environ.setdefault("DATABASE_URL", "postgresql+psycopg://egyptora:egyptora@localhost:5432/egyptora_test")
+os.environ.setdefault("DATABASE_URL", "postgresql+psycopg://egyptora:egyptora@localhost:5433/egyptora_test")
 os.environ["AI_MOCK"] = "true"
 os.environ["UPLOAD_DIR"] = tempfile.mkdtemp(prefix="egyptora-uploads-")
 
