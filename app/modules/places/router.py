@@ -6,7 +6,8 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.deps import not_implemented, require_role
 from app.modules.accounts.models import User
-from app.modules.places.schemas import AskIn
+from app.modules.places.schemas import AskIn, PlaceDetailOut
+from app.modules.places.service import get_place_or_404, to_detail
 
 router = APIRouter(tags=["T6 · Scan a monument"])
 OWNER = "Person 4"
@@ -28,11 +29,12 @@ def my_scans(user: User = Depends(traveler), db: Session = Depends(get_db)):
     raise not_implemented(OWNER)
 
 
-@router.get("/places/{place_id}")
-def place_detail(place_id: int, db: Session = Depends(get_db)):
-    """Why: full place details for the scan result and for trip items.
-    Then: "Add to trip" calls Person 2's POST /trips/{id}/days/{dayId}/items with place_id."""
-    raise not_implemented(OWNER)
+@router.get("/places/{place_id}", response_model=PlaceDetailOut, tags=["Places"])
+def place_detail(place_id: int, db: Session = Depends(get_db)) -> PlaceDetailOut:
+    """Why: full place details (with city name and photos) for the scan result and for trip items.
+    Public: no login needed.
+    Then: "Add to trip" calls POST /trips/{id}/days/{dayId}/items with this place_id."""
+    return to_detail(db, get_place_or_404(db, place_id))
 
 
 @router.post("/places/{place_id}/ask")

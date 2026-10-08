@@ -2,10 +2,13 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.utils import get_openapi
+from fastapi.staticfiles import StaticFiles
 
 import app.models  # noqa: F401  (loads every table so foreign keys resolve)
 from app.ai import chat_agent, nl2sql, place_qa, planner, recognizer, sentiment
 from app.core.config import settings
+from app.core.storage import URL_PREFIX, upload_root
 from app.modules.accounts import router as accounts
 from app.modules.admin_stats import router as admin_stats
 from app.modules.ai_quality import router_admin as ai_quality_admin
@@ -70,6 +73,9 @@ ROUTERS = [
 for r in ROUTERS:
     app.include_router(r, prefix=API_PREFIX)
 
+# Uploaded files (place photos, scans, documents) are served from here.
+app.mount(URL_PREFIX, StaticFiles(directory=upload_root()), name="uploads")
+
 if settings.expose_ai_routes:
     for ai in (sentiment, planner, chat_agent, recognizer, place_qa, nl2sql):
         app.include_router(ai.router, prefix=API_PREFIX)
@@ -78,3 +84,28 @@ if settings.expose_ai_routes:
 @app.get("/health", tags=["Health"])
 def health() -> dict:
     return {"status": "ok", "ai_mock": settings.ai_mock}
+
+
+def _mark_files_as_binary(node) -> None:
+    """FastAPI describes uploads as `contentMediaType: application/octet-stream` (OpenAPI 3.1), which Swagger UI
+    shows as a text box. `format: binary` makes Swagger show a real "Choose file" button, including for lists."""
+    if isinstance(node, dict):
+        if node.get("type") == "string" and node.get("contentMediaType") == "application/octet-stream":
+            node.pop("contentMediaType")
+            node["format"] = "binary"
+        for value in node.values():
+            _mark_files_as_binary(value)
+    elif isinstance(node, list):
+        for value in node:
+            _mark_files_as_binary(value)
+
+
+def custom_openapi() -> dict:
+    if app.openapi_schema is None:
+        schema = get_openapi(title=app.title, version=app.version, description=app.description, routes=app.routes)
+        _mark_files_as_binary(schema)
+        app.openapi_schema = schema
+    return app.openapi_schema
+
+
+app.openapi = custom_openapi
