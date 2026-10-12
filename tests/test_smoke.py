@@ -1,6 +1,6 @@
 """Shared smoke tests: the app starts and every planned endpoint is registered."""
 
-from tests.conftest import API
+from tests.conftest import API, auth_header
 
 
 def test_health(client):
@@ -15,6 +15,6 @@ def test_all_endpoints_registered(client):
 
 
 def test_stub_returns_501_with_owner(client):
-    res = client.get(f"{API}/hotels/1")
+    res = client.get(f"{API}/admin/stats", headers=auth_header(client, "smoke-admin@test.dev", role="admin"))
     assert res.status_code == 501
-    assert "Person 5" in res.json()["detail"]
+    assert "Person 3" in res.json()["detail"]
