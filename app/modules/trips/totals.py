@@ -12,6 +12,7 @@ from app.modules.trips.models import Trip, TripDay, TripItem
 
 
 def recalculate_total(db: Session, trip_id: int) -> int:
+    db.flush()  # the session doesn't autoflush: make pending changes visible to the sums below
     items_cost = db.scalar(
         select(func.coalesce(func.sum(TripItem.cost), 0))
         .join(TripDay, TripItem.trip_day_id == TripDay.id)
