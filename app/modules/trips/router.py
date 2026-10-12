@@ -82,3 +82,9 @@ def reorder_items(
 ):
     """Why: drag to reorder the day's timeline."""
     raise not_implemented(OWNER)
+
+
+@router.put("/trips/{trip_id}/days/{day_id}/offer")
+def choose_offer(trip_id: int, day_id: int, user: User = Depends(traveler), db: Session = Depends(get_db)):
+    """Why: the traveler picks which company they book that night with. (Built with the trips feature.)"""
+    raise not_implemented(OWNER)
