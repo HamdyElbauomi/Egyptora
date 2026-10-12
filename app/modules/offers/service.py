@@ -5,7 +5,10 @@
 - create_undercut_alerts(): called here after any price change (alerts for the other companies).
 """
 
+from sqlalchemy import update
 from sqlalchemy.orm import Session
+
+from app.modules.offers.models import Offer
 
 
 def best_offers_for_cities(db: Session, city_ids: list[int], budget_level: str) -> list[dict]:
@@ -14,8 +17,11 @@ def best_offers_for_cities(db: Session, city_ids: list[int], budget_level: str) 
 
 
 def pause_all_for_company(db: Session, company_id: int) -> int:
-    """Set every active offer of this company to paused. Returns how many changed."""
-    raise NotImplementedError("TODO(Person 6)")
+    """Set every active offer of this company to paused. Returns how many changed. Doesn't commit."""
+    result = db.execute(
+        update(Offer).where(Offer.company_id == company_id, Offer.status == "active").values(status="paused")
+    )
+    return result.rowcount or 0
 
 
 def create_undercut_alerts(db: Session, offer_id: int) -> None:
