@@ -67,10 +67,22 @@ class ImportOut(BaseModel):
 
 
 class HotelSearchIn(BaseModel):
-    question: str = Field(min_length=3, max_length=500)
-    trip_id: int | None = None
-    city_id: int | None = None
+    question: str = Field(min_length=3, max_length=500, examples=["4-star in Luxor under 1500 with free cancellation"])
+    trip_id: int | None = Field(default=None, description="Searching from a trip: its city is used when it has one")
+    city_id: int | None = Field(default=None, description="A city the screen already chose")
+
+
+class HotelSearchOut(BaseModel):
+    query_id: int
+    understood: str | None  # what the AI searched for, in plain words
+    results: list[HotelCardOut]
+    count: int
+    fallback: bool  # true = the AI search failed; show the normal filters (GET /hotels)
+    message: str | None
 
 
 class FixSqlIn(BaseModel):
-    sql: str
+    sql: str = Field(
+        min_length=6,
+        examples=["SELECT hotel_id FROM hotel_best_price WHERE city_id = 2 AND stars = 4 ORDER BY min_price"],
+    )

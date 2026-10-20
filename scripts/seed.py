@@ -9,6 +9,7 @@ Each seed function must be safe to run twice (check before inserting).
 import app.models  # noqa: F401
 from app.core.database import SessionLocal
 from app.modules.accounts import seed as accounts_seed
+from app.modules.ai_quality import seed as ai_quality_seed
 from app.modules.catalog import seed as catalog_seed
 from app.modules.hotels import seed as hotels_seed
 from app.modules.offers import seed as offers_seed
@@ -19,7 +20,8 @@ STEPS = [
     ("accounts + companies (Person 1)", accounts_seed.seed),
     ("cities + interests (Person 3)", catalog_seed.seed),
     ("places (Person 4)", places_seed.seed),
-    ("hotels + training examples (Person 5)", hotels_seed.seed),
+    ("hotels (Person 5)", hotels_seed.seed),
+    ("search training examples (Person 5)", ai_quality_seed.seed),
     ("offers (Person 6)", offers_seed.seed),
     ("sample trip (Person 2)", trips_seed.seed),
 ]
