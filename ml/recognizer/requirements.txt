@@ -1,0 +1,10 @@
+# Training only (Colab / Kaggle already have torch, torchvision, numpy, scikit-learn, matplotlib, pillow).
+torch
+torchvision
+timm>=1.0
+scikit-learn
+pillow
+imagehash
+matplotlib
+onnx
+onnxruntime
