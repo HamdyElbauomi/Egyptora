@@ -6,18 +6,28 @@ from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.database import get_db
-from app.core.deps import not_implemented, require_role
-from app.core.pagination import Page, PageParams, paginate
-from app.core.storage import delete_file, save_image, upload_root
+from app.core.deps import require_role
+from app.core.pagination import Page, PageParams, paginate, paginate_rows
+from app.core.storage import copy_file, delete_file, save_image, upload_root
 from app.modules.accounts.models import User
-from app.modules.places.models import PLACE_TYPES, Place, PlaceImage
-from app.modules.places.schemas import LabelScanIn, PlaceImageOut, PlaceIn, PlaceOut, PlaceUpdateIn
+from app.modules.places.models import PLACE_TYPES, Place, PlaceImage, Scan
+from app.modules.places.schemas import (
+    AdminScanOut,
+    LabelScanIn,
+    LabelScanOut,
+    PlaceImageOut,
+    PlaceIn,
+    PlaceOut,
+    PlaceUpdateIn,
+)
 from app.modules.places.service import (
     ensure_city_exists,
     ensure_label_free,
     get_place_or_404,
     interest_ids_by_place,
+    scans_query,
     set_interests,
     to_out,
 )
@@ -139,15 +149,67 @@ def delete_place_image(image_id: int, user: User = Depends(admin), db: Session =
     delete_file(url)
 
 
-@router.get("/ai/scans")
-def low_confidence_scans(max_confidence: float = 0.6, user: User = Depends(admin), db: Session = Depends(get_db)):
-    """Why: the admin sees scans the model was unsure about.
-    Then: labels them in POST /admin/ai/scans/{id}/label. (Built with the camera feature.)"""
-    raise not_implemented("Person 4")
+def to_admin_scan(s: Scan, place_name: str | None, city_name: str | None) -> AdminScanOut:
+    return AdminScanOut(
+        id=s.id,
+        user_id=s.user_id,
+        image_url=s.image_url,
+        confidence=float(s.confidence) if s.confidence is not None else None,
+        place_id=s.place_id,
+        place_name=place_name,
+        city_name=city_name,
+        labeled=s.place_id is not None,
+        created_at=s.created_at,
+    )
 
 
-@router.post("/ai/scans/{scan_id}/label")
-def label_scan(scan_id: int, body: LabelScanIn, user: User = Depends(admin), db: Session = Depends(get_db)):
-    """Why: correct the model's mistake by choosing the right place.
-    Then: the photo can be added to place_images, so the next training run improves. (Built with the camera feature.)"""
-    raise not_implemented("Person 4")
+@router.get("/ai/scans", response_model=Page[AdminScanOut])
+def low_confidence_scans(
+    max_confidence: float | None = Query(
+        None, ge=0, le=1, description="Default: settings.scan_confidence_threshold (scans shown as not sure)"
+    ),
+    only_unlabeled: bool = Query(True, description="false = also show scans that already have a place"),
+    params: PageParams = Depends(),
+    user: User = Depends(admin),
+    db: Session = Depends(get_db),
+) -> Page[AdminScanOut]:
+    """Why: the admin sees scans the model was unsure about, newest first.
+    By default: confidence under the threshold and no place yet (the review queue).
+    Set max_confidence=1 and only_unlabeled=false to check every scan, even confident ones.
+    Then: labels them in POST /admin/ai/scans/{id}/label."""
+    limit = settings.scan_confidence_threshold if max_confidence is None else max_confidence
+    under = Scan.confidence <= 1 if limit >= 1 else Scan.confidence < limit  # 1 = every scan
+    stmt = scans_query().where(under)
+    if only_unlabeled:
+        stmt = stmt.where(Scan.place_id.is_(None))
+    rows, total = paginate_rows(db, stmt.order_by(Scan.created_at.desc(), Scan.id.desc()), params)
+    return Page(data=[to_admin_scan(*r) for r in rows], page=params.page, limit=params.limit, total=total)
+
+
+@router.post("/ai/scans/{scan_id}/label", response_model=LabelScanOut)
+def label_scan(
+    scan_id: int, body: LabelScanIn, user: User = Depends(admin), db: Session = Depends(get_db)
+) -> LabelScanOut:
+    """Why: correct the model by choosing the right place for the photo (also fixes a wrong confident guess).
+    Effect: the scan gets the place (the traveler sees it in GET /scans). With add_to_training=true
+    the photo is copied into the place's images (source="user_scan"), so the next training run improves.
+    Scan photos are never shown on the public place page."""
+    record = db.get(Scan, scan_id)
+    if record is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"Scan {scan_id} not found")
+    place = get_place_or_404(db, body.place_id)
+    record.place_id = place.id
+    image = None
+    if body.add_to_training:
+        image = PlaceImage(
+            place_id=place.id,
+            image_url=copy_file(record.image_url, f"places/{place.id}"),
+            source="user_scan",
+            used_for_training=True,
+        )
+        db.add(image)
+    db.commit()
+    row = db.execute(scans_query().where(Scan.id == record.id)).one()
+    if image is not None:
+        db.refresh(image)
+    return LabelScanOut(scan=to_admin_scan(*row), training_image=PlaceImageOut.model_validate(image) if image else None)

@@ -42,3 +42,11 @@ def paginate(db: Session, stmt: Select, params: PageParams) -> tuple[list, int]:
     total = db.scalar(select(func.count()).select_from(stmt.order_by(None).subquery()))
     rows = list(db.scalars(stmt.offset(params.offset).limit(params.limit)))
     return rows, int(total or 0)
+
+
+def paginate_rows(db: Session, stmt: Select, params: PageParams) -> tuple[list, int]:
+    """Like paginate(), for queries that select several things (e.g. a model plus joined names).
+    Returns rows as tuples: [(Scan, place_name, city_name), ...]."""
+    total = db.scalar(select(func.count()).select_from(stmt.order_by(None).subquery()))
+    rows = [tuple(r) for r in db.execute(stmt.offset(params.offset).limit(params.limit))]
+    return rows, int(total or 0)

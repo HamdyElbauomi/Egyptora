@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.modules.catalog.models import City
 from app.modules.catalog.service import ensure_interests_exist, get_city_or_404
-from app.modules.places.models import Place, PlaceImage, PlaceInterest
+from app.modules.places.models import Place, PlaceImage, PlaceInterest, Scan
 from app.modules.places.schemas import PlaceDetailOut, PlaceImageOut, PlaceOut
 
 
@@ -62,12 +62,25 @@ def to_out(place: Place, interest_ids: list[int]) -> PlaceOut:
     return PlaceOut.model_validate({**columns, "interest_ids": interest_ids})
 
 
-def to_detail(db: Session, place: Place) -> PlaceDetailOut:
+def to_detail(db: Session, place: Place, include_scans: bool = False) -> PlaceDetailOut:
+    """include_scans=False hides photos that came from travelers' scans (they are private, for training only)."""
     city = get_city_or_404(db, place.city_id)
-    images = db.scalars(select(PlaceImage).where(PlaceImage.place_id == place.id).order_by(PlaceImage.id))
+    stmt = select(PlaceImage).where(PlaceImage.place_id == place.id).order_by(PlaceImage.id)
+    if not include_scans:
+        stmt = stmt.where(PlaceImage.source == "admin")
+    images = db.scalars(stmt)
     base = to_out(place, interest_ids_by_place(db, [place.id])[place.id])
     return PlaceDetailOut(
         **base.model_dump(),
         city_name=city.name,
         images=[PlaceImageOut.model_validate(img) for img in images],
+    )
+
+
+def scans_query():
+    """Scans with their place and city names (both null when the place is unknown)."""
+    return (
+        select(Scan, Place.name, City.name)
+        .outerjoin(Place, Place.id == Scan.place_id)
+        .outerjoin(City, City.id == Place.city_id)
     )
