@@ -37,5 +37,5 @@ def test_role_check(client):
     traveler = auth_header(client, "t1@test.dev")
     admin = auth_header(client, "a1@test.dev", role="admin")
     assert client.get(f"{API}/admin/stats", headers=traveler).status_code == 403
-    assert client.get(f"{API}/admin/stats", headers=admin).status_code == 501  # allowed, not built yet
+    assert client.get(f"{API}/admin/stats", headers=admin).status_code == 200
     assert client.get(f"{API}/admin/stats").status_code == 401

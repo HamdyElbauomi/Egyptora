@@ -106,3 +106,33 @@ class ReviewIn(BaseModel):
     trip_id: int | None = None
     rating: int = Field(ge=1, le=5)
     comment: str | None = None
+
+
+class ReviewOut(BaseModel):
+    """A review as travelers and the company see it: first name only, no trip or account details."""
+
+    id: int
+    company_id: int
+    rating: int
+    comment: str | None
+    sentiment: str | None  # positive | neutral | negative (null when there is no comment)
+    reviewer_name: str
+    created_at: datetime
+
+
+class ReviewAddedOut(BaseModel):
+    review: ReviewOut
+    trust_score: float | None  # the company's new trust score
+    reviews_count: int
+
+
+class ReviewInsightsOut(BaseModel):
+    reviews_count: int
+    average_rating: float | None
+    rating_counts: dict[str, int]  # {"1": 0, ..., "5": 12}
+    sentiment_counts: dict[str, int]  # {"positive": 9, "neutral": 2, "negative": 1}
+    positive_share: float | None  # among reviews with a comment
+    top_complaints: list[str]
+    trust_score: float | None
+    initial_score: float | None
+    recent_negative: list[ReviewOut]

@@ -6,13 +6,20 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.deps import not_implemented, require_role
+from app.core.deps import require_role
+from app.core.pagination import Page, PageParams, paginate_rows
 from app.core.security import create_access_token, create_refresh_token, hash_password
 from app.core.storage import delete_file, save_document
 from app.modules.accounts.models import User
 from app.modules.companies.models import Company
-from app.modules.companies.schemas import CompanyOut, CompanyRegisteredOut, CompanyUpdateIn
-from app.modules.companies.service import company_of, to_out
+from app.modules.companies.schemas import (
+    CompanyOut,
+    CompanyRegisteredOut,
+    CompanyUpdateIn,
+    ReviewInsightsOut,
+    ReviewOut,
+)
+from app.modules.companies.service import company_of, review_insights, reviews_query, to_out, to_review_out
 
 router = APIRouter(prefix="/company", tags=["C1-C2-C5 · Company account"])
 company_role = require_role("company")
@@ -110,13 +117,18 @@ async def upload_document(
     return to_out(company)
 
 
-@router.get("/reviews")
-def my_reviews(user: User = Depends(company_role), db: Session = Depends(get_db)):
-    """Why: a company wants to see what travelers said about it. (Built with the reviews feature.)"""
-    raise not_implemented("Person 1")
+@router.get("/reviews", response_model=Page[ReviewOut])
+def my_reviews(
+    params: PageParams = Depends(), user: User = Depends(company_role), db: Session = Depends(get_db)
+) -> Page[ReviewOut]:
+    """Why: a company wants to see what travelers said about it, newest first, with each review's sentiment."""
+    company = company_of(db, user)
+    rows, total = paginate_rows(db, reviews_query(company.id), params)
+    return Page(data=[to_review_out(*r) for r in rows], page=params.page, limit=params.limit, total=total)
 
 
-@router.get("/reviews/insights")
-def my_review_insights(user: User = Depends(company_role), db: Session = Depends(get_db)):
-    """Why: % positive and top complaints from sentiment analysis. (Built with the reviews feature.)"""
-    raise not_implemented("Person 1")
+@router.get("/reviews/insights", response_model=ReviewInsightsOut)
+def my_review_insights(user: User = Depends(company_role), db: Session = Depends(get_db)) -> ReviewInsightsOut:
+    """Why: the company sees what to fix: average rating, ratings 1-5, % positive comments,
+    top complaints (from negative and neutral comments), trust score, and the latest negative reviews."""
+    return review_insights(db, company_of(db, user))

@@ -1,6 +1,7 @@
 """Shared smoke tests: the app starts and every planned endpoint is registered."""
 
-from tests.conftest import API, auth_header
+from app.core.deps import not_implemented
+from tests.conftest import API
 
 
 def test_health(client):
@@ -14,7 +15,11 @@ def test_all_endpoints_registered(client):
     assert len(ops) == 97
 
 
-def test_stub_returns_501_with_owner(client):
-    res = client.get(f"{API}/admin/stats", headers=auth_header(client, "smoke-admin@test.dev", role="admin"))
-    assert res.status_code == 501
-    assert "Person 3" in res.json()["detail"]
+def test_no_endpoint_is_a_stub_anymore():
+    """Every planned endpoint is built. not_implemented() stays for new endpoints added as stubs first."""
+    from pathlib import Path
+
+    stubs = [str(p) for p in Path("app/modules").rglob("*.py") if "raise not_implemented(" in p.read_text()]
+    assert stubs == []
+    error = not_implemented("Person 3")
+    assert error.status_code == 501 and "Person 3" in error.detail
