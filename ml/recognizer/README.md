@@ -22,7 +22,8 @@ The photo collection rules and who collects what are in the team doc *Monument p
 
 ## Run it
 
-1. Put the photos in Google Drive as `MyDrive/Egyptora/monuments/{raw,test}/<label>/` with `sources.csv`.
+1. Put the photos in Google Drive as `MyDrive/Egyptora/monuments/{raw,test}/<label>/`, named
+   `<person>_<source>_<number>.jpg` (e.g. `p3_commons_0042.jpg`).
 2. Open `train.ipynb` in Colab (File → Open notebook → GitHub), pick a T4 GPU, and Run all.
 3. Results land in `monuments/runs/convnext_tiny/`: `recognizer.onnx`, `labels.json`, `training_curves.png`,
    `confusion_matrix.png`.

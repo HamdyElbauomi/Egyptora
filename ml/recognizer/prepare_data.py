@@ -7,7 +7,6 @@ Reads monuments/raw/<label>/ and monuments/test/<label>/ (see the "Monument phot
 2. drops near-duplicate training photos (perceptual hash),
 3. drops training photos that look like a test photo, so the test score stays honest,
 4. splits raw/ into train and val per class (--val, default 15%),
-5. warns about photos missing from sources.csv,
 and writes monuments/splits.csv (path, label, split) for the training notebook.
 """
 
@@ -105,16 +104,6 @@ def main() -> int:
         rows += [(str(p.relative_to(args.root)), label, "val") for p in clean[:n_val]]
         rows += [(str(p.relative_to(args.root)), label, "train") for p in clean[n_val:]]
         rows += [(str(p.relative_to(args.root)), label, "test") for p, _ in test[label]]
-
-    sources = args.root / "sources.csv"
-    if sources.is_file():
-        with sources.open(newline="", encoding="utf-8") as f:
-            listed = {row["file"] for row in csv.DictReader(f)}
-        missing = [r[0] for r in rows if Path(r[0]).name not in listed]
-        if missing:
-            warnings.append(f"{len(missing)} photos missing from sources.csv, e.g. {missing[0]}")
-    else:
-        warnings.append("sources.csv not found")
 
     out = args.root / "splits.csv"
     with out.open("w", newline="", encoding="utf-8") as f:
