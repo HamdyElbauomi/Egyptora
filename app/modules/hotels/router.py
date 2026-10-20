@@ -5,21 +5,53 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.deps import get_current_user, not_implemented
+from app.core.deps import get_current_user
 from app.core.pagination import Page, PageParams
 from app.modules.accounts.models import User
+from app.modules.ai_quality.service import search
 from app.modules.hotels.models import Hotel
-from app.modules.hotels.schemas import HotelCardOut, HotelSearchIn
+from app.modules.hotels.schemas import HotelCardOut, HotelSearchIn, HotelSearchOut
 from app.modules.hotels.service import card_for, cards_query, to_card
+from app.modules.trips.service import get_own_trip, trip_city_ids
 
 router = APIRouter(prefix="/hotels", tags=["T7 · Hotels"])
 
 
-@router.post("/search")
-def search_hotels(body: HotelSearchIn, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    """AI. Why: travelers ask like people do: "4-star in Luxor under 1500 near the Nile with free cancellation".
-    (Built with the NL search feature. Until then, use the filters in GET /hotels.)"""
-    raise not_implemented("Person 5")
+@router.post("/search", response_model=HotelSearchOut)
+def search_hotels(
+    body: HotelSearchIn, user: User = Depends(get_current_user), db: Session = Depends(get_db)
+) -> HotelSearchOut:
+    """AI. Why: travelers ask like people do: "4-star in Luxor under 1500 with free cancellation"
+    (Arabic works too: "فندق 4 نجوم في الأقصر تحت 1500").
+    How: app/ai/nl2sql.py writes a SELECT; we check it (only hotel_best_price and offers, read-only,
+    3-second limit) and turn the hotel ids into hotel cards. Every search is logged in nl_queries
+    for the admin AI-quality screen.
+    If the AI fails: fallback=true with a message, so the screen shows the normal filters (GET /hotels).
+    Then: open a hotel and compare its offers (GET /hotels/{id}/offers)."""
+    city_id = body.city_id
+    if body.trip_id is not None:
+        trip = get_own_trip(db, user, body.trip_id)
+        cities = trip_city_ids(db, trip.id)
+        if city_id is None and len(cities) == 1:
+            city_id = cities[0]
+    log, cards, understood = search(db, user.id, body.question, city_id)
+    if log.status == "failed":
+        return HotelSearchOut(
+            query_id=log.id,
+            understood=None,
+            results=[],
+            count=0,
+            fallback=True,
+            message="Sorry, I couldn't run that search. Try the filters instead.",
+        )
+    return HotelSearchOut(
+        query_id=log.id,
+        understood=understood,
+        results=cards,
+        count=len(cards),
+        fallback=False,
+        message=None if cards else "No hotels match that yet. Try a higher price or fewer conditions.",
+    )
 
 
 @router.get("", response_model=Page[HotelCardOut])

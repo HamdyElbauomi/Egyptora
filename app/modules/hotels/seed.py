@@ -2,7 +2,7 @@
 
 The names are fictional on purpose: this is demo data, and real hotel names would come with star ratings
 and details we can't verify. The admin adds or imports the real list (see scripts/data/hotels_sample.csv
-for the CSV format). NL-to-SQL training examples are added with the NL search feature.
+for the CSV format). NL-to-SQL training examples are seeded in ai_quality/seed.py.
 """
 
 from sqlalchemy import select
