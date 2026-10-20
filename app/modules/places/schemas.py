@@ -97,3 +97,41 @@ class AskIn(BaseModel):
 class LabelScanIn(BaseModel):
     place_id: int
     add_to_training: bool = True
+
+
+# ---------- scans ----------
+
+
+class ScanOut(BaseModel):
+    scan_id: int
+    status: str  # "recognized" | "not_sure"
+    confidence: float
+    image_url: str
+    place: PlaceDetailOut | None  # null when not sure
+    message: str
+
+
+class ScanListItem(BaseModel):
+    id: int
+    image_url: str
+    confidence: float | None
+    place_id: int | None
+    place_name: str | None
+    city_name: str | None
+    created_at: datetime
+
+
+class AdminScanOut(ScanListItem):
+    user_id: int
+    labeled: bool  # an admin (or a confident model) set the place
+
+
+class LabelScanOut(BaseModel):
+    scan: AdminScanOut
+    training_image: PlaceImageOut | None
+
+
+class AnswerOut(BaseModel):
+    answer: str
+    grounded: bool  # false = the verified notes don't answer this; nothing was made up
+    source_url: str | None

@@ -54,6 +54,26 @@ async def save_document(file: UploadFile, folder: str) -> str:
     return await _save(file, folder, DOCUMENT_TYPES, MAX_DOCUMENT_BYTES, "PDF, JPEG, PNG or WebP")
 
 
+def _path_of(url: str) -> Path | None:
+    if not url.startswith(URL_PREFIX + "/"):
+        return None
+    path = (upload_root() / url.removeprefix(URL_PREFIX + "/")).resolve()
+    return path if upload_root().resolve() in path.parents else None
+
+
+def copy_file(url: str, folder: str) -> str:
+    """Copies a saved file into another folder (e.g. a scan photo into a place's training images).
+    Returns the new URL. Raises 404 when the original file is missing."""
+    source = _path_of(url)
+    if source is None or not source.is_file():
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "The original file is missing")
+    target_dir = upload_root() / folder
+    target_dir.mkdir(parents=True, exist_ok=True)
+    name = f"{uuid.uuid4().hex}{source.suffix}"
+    (target_dir / name).write_bytes(source.read_bytes())
+    return f"{URL_PREFIX}/{folder}/{name}"
+
+
 def delete_file(url: str | None) -> None:
     """Deletes a file previously saved by this module. Ignores URLs that point elsewhere."""
     if not url or not url.startswith(URL_PREFIX + "/"):
