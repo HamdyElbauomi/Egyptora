@@ -46,6 +46,11 @@ def ai_metrics(user: User = Depends(admin), db: Session = Depends(get_db)) -> Me
     search: how many plain-language searches worked, failed or found nothing, and how fast.
     scans: recognized vs not sure, and how many the admin has labeled or still has to review.
     chat: how many suggested changes travelers kept. training: examples and photos the models learn from."""
+    return build_metrics(db)
+
+
+def build_metrics(db: Session) -> MetricsOut:
+    """Shared with GET /admin/stats."""
     by_status = dict(db.execute(select(NLQuery.status, func.count()).group_by(NLQuery.status)).all())
     total = sum(by_status.values())
     latencies = sorted(db.scalars(select(NLQuery.latency_ms).where(NLQuery.latency_ms.is_not(None))))
