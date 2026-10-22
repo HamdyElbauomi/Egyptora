@@ -2,7 +2,8 @@
 
     python ml/recognizer/prepare_data.py --root /path/to/monuments
 
-Reads monuments/raw/<label>/ and monuments/test/<label>/ (see the "Monument photos plan" doc), then:
+Reads monuments/raw/<label>/ and monuments/test/<label>/ (see the "Monument photos plan" doc), including any
+subfolders inside a class folder (e.g. raw/other/Philae Temple/), then:
 1. skips files that aren't images or are smaller than --min-side pixels on the short side,
 2. drops near-duplicate training photos (perceptual hash),
 3. drops training photos that look like a test photo, so the test score stays honest,
@@ -22,6 +23,7 @@ from PIL import Image, UnidentifiedImageError
 
 LABELS = ("giza_pyramids", "great_sphinx", "karnak_temple", "luxor_temple", "abu_simbel", "other")
 IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp"}
+SKIP_NAMES = ("preview.*",)  # contact sheets that come with downloaded image sets, not real photos
 NEAR_DUPLICATE = 4  # hash distance: 0 = identical, <= 4 = same shot (resized, recompressed, burst)
 TEST_LOOKALIKE = 6  # a bit looser between train and test: when in doubt, keep the test honest
 
@@ -43,6 +45,7 @@ def short_side(path: Path) -> int:
 
 def scan(folder: Path, min_side: int, warnings: list[str]) -> dict[str, list[tuple[Path, imagehash.ImageHash]]]:
     found: dict[str, list[tuple[Path, imagehash.ImageHash]]] = {label: [] for label in LABELS}
+    skipped: list[Path] = []
     if not folder.is_dir():
         warnings.append(f"missing folder {folder}")
         return found
@@ -50,8 +53,11 @@ def scan(folder: Path, min_side: int, warnings: list[str]) -> dict[str, list[tup
         if sub.name not in LABELS:
             warnings.append(f"unknown class folder {sub} (expected one of {', '.join(LABELS)})")
             continue
-        for path in sorted(sub.iterdir()):
+        for path in sorted(p for p in sub.rglob("*") if p.is_file()):
             if path.suffix.lower() not in IMAGE_SUFFIXES:
+                continue
+            if any(path.match(pattern) for pattern in SKIP_NAMES):
+                skipped.append(path)
                 continue
             h = photo_hash(path)
             if h is None:
@@ -60,6 +66,8 @@ def scan(folder: Path, min_side: int, warnings: list[str]) -> dict[str, list[tup
                 warnings.append(f"too small (< {min_side}px): {path}")
             else:
                 found[sub.name].append((path, h))
+    if skipped:
+        warnings.append(f"skipped {len(skipped)} contact-sheet files in {folder.name}/ (e.g. {skipped[0].name})")
     return found
 
 
