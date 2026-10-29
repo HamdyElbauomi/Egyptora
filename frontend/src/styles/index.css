@@ -1,0 +1,75 @@
+@import '@fontsource-variable/fraunces/full.css';
+@import '@fontsource-variable/manrope/index.css';
+@import 'tailwindcss';
+
+/*
+ * Design tokens from the Figma file "Masar — Trip Planner UI" (Egyptora variables).
+ * Use them through Tailwind classes, e.g. bg-canvas, text-ink-2, border-line-strong.
+ */
+@theme {
+  --font-sans: 'Manrope Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Fraunces Variable', ui-serif, Georgia, serif;
+
+  /* backgrounds */
+  --color-canvas: #f6efe4; /* bg-canvas */
+  --color-muted: #efe4d3; /* bg-muted */
+  --color-card: #fffdf9; /* bg-card */
+  --color-raised: #fbf7f0; /* bg-raised */
+  --color-selected: #fff4ec; /* bg-selected */
+  --color-bubble: #f1e8da; /* bg-bubble */
+  --color-inverse: #1f1a17; /* bg-inverse */
+  --color-placeholder: #e9dcc7; /* bg-placeholder */
+  --color-track: #e6dac8; /* progress track */
+
+  /* text */
+  --color-ink: #1f1a17; /* text-primary */
+  --color-ink-2: #5e534a; /* text-secondary */
+  --color-ink-3: #6b5f55; /* text-tertiary */
+  --color-ink-4: #8a7d70; /* text-placeholder */
+  --color-on-dark: #f6efe4; /* text-on-dark */
+  --color-on-dark-muted: #cfc3b4; /* text-on-dark-muted */
+
+  /* brand */
+  --color-terracotta: #a64b28; /* brand-terracotta, text-accent, border-accent */
+  --color-terracotta-strong: #83391c; /* text-accent-strong */
+  --color-terracotta-soft: #f3ddd0;
+  --color-gold: #d9a441;
+  --color-gold-light: #e2b04a;
+  --color-gold-soft: #f6e7c4;
+  --color-nile: #2e6a58; /* brand-nile, text-success, border-success */
+  --color-nile-strong: #1f4a3d; /* text-success-strong */
+  --color-nile-soft: #dceae3;
+  --color-warning: #7a5712;
+
+  /* borders */
+  --color-line: #e6dac8; /* border-default */
+  --color-line-strong: #d8c8b2; /* border-strong */
+  --color-line-muted: #a8977f; /* border-muted */
+  --color-line-divider: #e1d3bf; /* border-divider */
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    min-height: 100%;
+  }
+  body {
+    @apply bg-canvas font-sans text-ink antialiased;
+  }
+  button {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
+}
+
+/* Fraunces as used in the design: SemiBold with the "SOFT 0, WONK 1" axes */
+@utility font-display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-variation-settings:
+    'SOFT' 0,
+    'WONK' 1;
+}
