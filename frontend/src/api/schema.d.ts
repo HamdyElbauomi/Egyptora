@@ -471,6 +471,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/cities/{city_id}/places": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List City Places
+         * @description Why: the trip page's "Add a place" lists what can be added to a day in that city.
+         *     Then: the chosen place id goes into POST /trips/{trip_id}/days/{day_id}/items.
+         */
+        get: operations["list_city_places_api_v1_cities__city_id__places_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/trips/generate": {
         parameters: {
             query?: never;
@@ -4916,6 +4937,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuggestOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_city_places_api_v1_cities__city_id__places_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                city_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlaceOut"][];
                 };
             };
             /** @description Validation Error */

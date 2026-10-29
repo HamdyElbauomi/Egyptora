@@ -3,7 +3,7 @@ import type { TripDay, TripItem } from '@/api/queries'
 import { Chip } from '@/components/ui/Chip'
 import { Icon, type IconName } from '@/components/ui/Icon'
 import { formatDate, formatDateRange, formatEgp, formatNumber, formatTime, plural } from '@/lib/format'
-import { costBreakdown, gapAfter, itemDuration, route } from './tripMath'
+import { costBreakdown, formatDuration, gapAfter, itemDuration, itemTitle, route } from './tripMath'
 
 export interface TripViewData {
   title: string
@@ -22,7 +22,17 @@ interface TripViewProps {
   /** extra chips after route and days, e.g. interests */
   chips?: ReactNode
   actions?: ReactNode
+  /** controlled day tab; uncontrolled when left out */
+  dayNumber?: number
+  onDayChange?: (dayNumber: number) => void
+  /** editing hooks used by the traveler's own trip page */
+  stopActions?: (item: TripItem, day: TripDay, index: number) => ReactNode
+  dayFooter?: (day: TripDay) => ReactNode
+  hotelAction?: (day: TripDay) => ReactNode
+  /** shown above the cost card, e.g. a pending-change banner */
+  aside?: ReactNode
 }
+
 
 const TYPE_TAG: Record<string, { label: string; tone: 'gold' | 'nile' | 'muted' } | undefined> = {
   meal: { label: 'Food', tone: 'gold' },
@@ -33,9 +43,12 @@ const TYPE_TAG: Record<string, { label: string; tone: 'gold' | 'nile' | 'muted' 
 const TYPE_ICON: Record<string, IconName> = { visit: 'history', meal: 'food', transport: 'train', free_time: 'leaf' }
 
 /** Title, day tabs, the day's timeline, the cost card and tonight's hotel. */
-export function TripView({ trip, eyebrow, chips, actions }: TripViewProps) {
-  const [dayIndex, setDayIndex] = useState(0)
-  const day = trip.itinerary[Math.min(dayIndex, trip.itinerary.length - 1)]
+export function TripView(props: TripViewProps) {
+  const { trip, eyebrow, chips, actions, stopActions, dayFooter, hotelAction, aside } = props
+  const [ownDay, setOwnDay] = useState(1)
+  const selected = props.dayNumber ?? ownDay
+  const day = trip.itinerary.find((d) => d.day_number === selected) ?? trip.itinerary[0]
+  const selectDay = (n: number) => (props.onDayChange ? props.onDayChange(n) : setOwnDay(n))
   const dates = formatDateRange(trip.start_date, trip.end_date)
 
   return (
@@ -56,7 +69,7 @@ export function TripView({ trip, eyebrow, chips, actions }: TripViewProps) {
         </div>
 
         <div role="tablist" aria-label="Days" className="-mx-4 mt-7 flex gap-2.5 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
-          {trip.itinerary.map((d, i) => {
+          {trip.itinerary.map((d) => {
             const active = d.id === day?.id
             return (
               <button
@@ -64,7 +77,7 @@ export function TripView({ trip, eyebrow, chips, actions }: TripViewProps) {
                 type="button"
                 role="tab"
                 aria-selected={active}
-                onClick={() => setDayIndex(i)}
+                onClick={() => selectDay(d.day_number)}
                 className={`shrink-0 rounded-xl border-[1.5px] px-4 py-3 text-[15px] font-semibold transition-colors ${
                   active ? 'border-inverse bg-inverse text-on-dark' : 'border-line bg-card text-ink hover:border-line-strong'
                 }`}
@@ -75,18 +88,27 @@ export function TripView({ trip, eyebrow, chips, actions }: TripViewProps) {
           })}
         </div>
 
-        {day && <DayTimeline day={day} />}
+        {day && <DayTimeline day={day} stopActions={stopActions} footer={dayFooter?.(day)} />}
       </div>
 
       <aside className="flex flex-col gap-5 lg:pt-1">
+        {aside}
         <CostCard trip={trip} />
-        {day && <HotelCard day={day} />}
+        {day && <HotelCard day={day} action={hotelAction?.(day)} />}
       </aside>
     </div>
   )
 }
 
-function DayTimeline({ day }: { day: TripDay }) {
+function DayTimeline({
+  day,
+  stopActions,
+  footer,
+}: {
+  day: TripDay
+  stopActions?: TripViewProps['stopActions']
+  footer?: ReactNode
+}) {
   return (
     <section role="tabpanel" aria-label={`Day ${day.day_number}`} className="mt-5 rounded-[22px] border border-line bg-card p-4 sm:p-6">
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2 px-1">
@@ -109,10 +131,10 @@ function DayTimeline({ day }: { day: TripDay }) {
             const gap = gapAfter(item, day.items[i + 1])
             return (
               <li key={item.id}>
-                <StopRow item={item} />
+                <StopRow item={item} actions={stopActions?.(item, day, i)} />
                 {gap !== null && gap >= 10 && (
                   <p className="my-1 ml-[74px] border-l-2 border-line py-2 pl-3 text-[13px] text-ink-3 sm:ml-[110px]">
-                    {gap} min to move on
+                    {formatDuration(gap)} to move on
                   </p>
                 )}
                 {gap === null && i < day.items.length - 1 && <div className="h-3" />}
@@ -121,11 +143,12 @@ function DayTimeline({ day }: { day: TripDay }) {
           })}
         </ol>
       )}
+      {footer && <div className="mt-4 border-t border-line pt-4">{footer}</div>}
     </section>
   )
 }
 
-function StopRow({ item }: { item: TripItem }) {
+function StopRow({ item, actions }: { item: TripItem; actions?: ReactNode }) {
   const tag = TYPE_TAG[item.type]
   const duration = itemDuration(item)
   const cost = item.cost ? formatEgp(item.cost) : null
@@ -143,14 +166,15 @@ function StopRow({ item }: { item: TripItem }) {
       )}
       <div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-x-4 gap-y-1 py-2">
         <div className="min-w-0">
-          <p className="text-[17px] font-bold sm:text-lg">{item.place_name ?? 'Free time'}</p>
-          {item.note && <p className="mt-1 text-[15px] text-ink-2">{item.note}</p>}
+          <p className="text-[17px] font-bold sm:text-lg">{itemTitle(item)}</p>
+          {item.note && item.place_name && <p className="mt-1 text-[15px] text-ink-2">{item.note}</p>}
         </div>
         <div className="flex flex-col items-start gap-1.5 sm:items-end">
           {tag && <Chip tone={tag.tone} className="!px-2.5 !py-0.5 !text-[13px]">{tag.label}</Chip>}
           <p className="text-sm text-ink-3">{[duration, cost].filter(Boolean).join(' · ')}</p>
         </div>
       </div>
+      {actions && <div className="shrink-0">{actions}</div>}
     </div>
   )
 }
@@ -203,15 +227,16 @@ function CostCard({ trip }: { trip: TripViewData }) {
   )
 }
 
-function HotelCard({ day }: { day: TripDay }) {
+function HotelCard({ day, action }: { day: TripDay; action?: ReactNode }) {
   const hotel = day.hotel
   return (
-    <section className="flex gap-4 rounded-[22px] border border-line bg-card p-5">
+    <section className="relative flex gap-4 rounded-[22px] border border-line bg-card p-5">
+      {action && <div className="absolute top-4 right-4">{action}</div>}
       <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-nile-soft text-nile">
         <Icon name="bed" size={22} />
       </span>
       <div className="min-w-0">
-        <p className="text-sm text-ink-3">Tonight · Day {day.day_number}</p>
+        <p className="pr-16 text-sm text-ink-3">Tonight · Day {day.day_number}</p>
         {hotel ? (
           <>
             <p className="mt-0.5 text-[17px] font-bold">

@@ -11,8 +11,8 @@ def test_health(client):
 def test_all_endpoints_registered(client):
     spec = client.get("/openapi.json").json()
     ops = [(m, p) for p, v in spec["paths"].items() for m in v if p.startswith(API)]
-    # 91 product endpoints + 6 AI endpoints. Update this number when you add or remove an endpoint.
-    assert len(ops) == 97
+    # 92 product endpoints + 6 AI endpoints. Update this number when you add or remove an endpoint.
+    assert len(ops) == 98
 
 
 def test_no_endpoint_is_a_stub_anymore():

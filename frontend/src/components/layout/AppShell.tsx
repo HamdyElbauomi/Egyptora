@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/auth/AuthProvider'
 import { Icon } from '@/components/ui/Icon'
 import { Logo } from '@/components/ui/Logo'
@@ -14,10 +14,10 @@ export interface NavItem {
 export function AppShell({ nav, home, children }: { nav: NavItem[]; home: string; children?: ReactNode }) {
   return (
     <div className="min-h-dvh">
-      <header className="sticky top-0 z-20 border-b border-line bg-canvas/95 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-[1440px] items-center gap-4 px-4 sm:px-10 lg:h-[72px]">
+      <header className="sticky top-0 z-20 border-b border-line bg-canvas/95 backdrop-blur print:hidden">
+        <div className="mx-auto flex max-w-[1440px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 sm:px-10 lg:h-[72px] lg:flex-nowrap lg:py-0">
           <Logo size="sm" to={home} />
-          <nav aria-label="Main" className="mx-auto flex gap-1 overflow-x-auto">
+          <nav aria-label="Main" className="order-3 -mx-1 flex w-full gap-1 overflow-x-auto px-1 lg:order-none lg:mx-auto lg:w-auto">
             {nav.map((item) => (
               <NavLink
                 key={item.to}
@@ -63,7 +63,7 @@ function AccountMenu() {
   const initial = (user?.name ?? '?').trim().charAt(0).toUpperCase()
 
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className="relative ml-auto lg:ml-0">
       <button
         type="button"
         aria-haspopup="menu"
@@ -81,6 +81,17 @@ function AccountMenu() {
             <p className="truncate text-sm text-ink-3">{user?.email}</p>
             <p className="mt-1 text-xs font-bold tracking-[0.08em] text-nile uppercase">{session?.role}</p>
           </div>
+          {session?.role === 'traveler' && (
+            <Link
+              to="/trips"
+              role="menuitem"
+              onClick={() => setOpen(false)}
+              className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-[15px] font-semibold hover:bg-muted"
+            >
+              <Icon name="list" size={18} />
+              My trips
+            </Link>
+          )}
           <button
             type="button"
             role="menuitem"

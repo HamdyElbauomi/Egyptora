@@ -1,6 +1,6 @@
 """Feature T2 · Preferences lookups (public, no login needed)."""
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -9,6 +9,8 @@ from app.modules.catalog.models import City, Interest
 from app.modules.catalog.schemas import CityCardOut, CityOut, CitySuggestion, InterestOut, SuggestOut
 from app.modules.catalog.service import ensure_interests_exist, recommended_city_count
 from app.modules.places.models import Place
+from app.modules.places.schemas import PlaceOut
+from app.modules.places.service import interest_ids_by_place, to_out
 from app.modules.trips.service import rank_cities_by_interests
 
 router = APIRouter(tags=["T2 · Preferences"])
@@ -56,3 +58,14 @@ def suggest_cities(
         for i, (city, n) in enumerate(rows)
     ]
     return SuggestOut(recommended_count=count, suggestions=suggestions)
+
+
+@router.get("/cities/{city_id}/places", response_model=list[PlaceOut])
+def list_city_places(city_id: int, db: Session = Depends(get_db)) -> list[PlaceOut]:
+    """Why: the trip page's "Add a place" lists what can be added to a day in that city.
+    Then: the chosen place id goes into POST /trips/{trip_id}/days/{day_id}/items."""
+    if db.get(City, city_id) is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "City not found")
+    places = list(db.scalars(select(Place).where(Place.city_id == city_id).order_by(Place.name)))
+    interests = interest_ids_by_place(db, [p.id for p in places])
+    return [to_out(p, interests[p.id]) for p in places]
