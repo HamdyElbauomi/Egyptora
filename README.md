@@ -76,7 +76,8 @@ flowchart LR
 | Database | PostgreSQL 16, SQLAlchemy 2.0, Alembic |
 | Auth | JWT (access + refresh tokens), role-based access |
 | AI | LLM agents, computer vision, NL-to-SQL, sentiment analysis |
-| Quality | pytest, Ruff, GitHub Actions |
+| Web app | React 19, Vite, TypeScript, Tailwind CSS, TanStack Query |
+| Quality | pytest, Ruff, Vitest, oxlint, GitHub Actions |
 | Dev environment | Docker Compose |
 
 ## Getting started
@@ -102,6 +103,16 @@ uvicorn app.main:app --reload
 Interactive API docs: **http://localhost:8000/docs**
 
 Sample accounts (development only, password `egyptora123`): `admin@egyptora.dev`, `traveler1@egyptora.dev`, `sunrise@egyptora.dev`.
+
+**Web app** (Node 22+), with the API running:
+
+```bash
+cd frontend
+npm install
+npm run dev                      # http://localhost:5173 — /api is proxied to :8000
+```
+
+See [frontend/README.md](frontend/README.md) for the structure and scripts.
 
 ## Configuration
 
@@ -135,6 +146,7 @@ app/
 │   ├── ai_quality/    query logs and training examples
 │   └── admin_stats/   platform overview
 └── main.py        application entry point
+frontend/          web app for travelers, companies and admins (React + Vite)
 migrations/        Alembic migrations
 scripts/           seed data and database setup
 tests/             test suite
@@ -146,9 +158,11 @@ tests/             test suite
 pytest                              # test suite (uses a separate egyptora_test database)
 ruff check . && ruff format --check .
 alembic check                       # models and migrations are in sync
+
+cd frontend && npm run lint && npm run typecheck && npm test && npm run build
 ```
 
-All three run on every pull request.
+All of these run on every pull request.
 
 ## Status
 
