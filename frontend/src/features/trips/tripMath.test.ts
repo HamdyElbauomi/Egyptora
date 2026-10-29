@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { TripDay, TripItem } from '@/api/queries'
-import { costBreakdown, formatDuration, gapAfter, itemDuration, route } from './tripMath'
+import { costBreakdown, formatDuration, gapAfter, itemDuration, route, stayOf } from './tripMath'
 
 const item = (start: string, end: string, cost = 0): TripItem => ({
   id: 1, place_id: 1, place_name: 'X', place_image_url: null, type: 'visit',
@@ -31,5 +31,14 @@ describe('trip math', () => {
     const days = [day(1, 'Cairo', [item('09:00:00', '10:00:00', 600)], 1200), day(2, 'Cairo', [], 1200), day(3, 'Luxor', [])]
     expect(costBreakdown(days, 3500)).toEqual({ hotels: 2400, nights: 2, tickets: 600, other: 500, total: 3500 })
     expect(route(days)).toBe('Cairo → Luxor')
+  })
+})
+
+describe('stayOf', () => {
+  it('returns the nights in a row in the same city', () => {
+    const days = [day(1, 'Cairo', []), day(2, 'Cairo', []), day(3, 'Luxor', []), day(4, 'Luxor', [])]
+    days[2].city_id = days[3].city_id = 2
+    expect(stayOf(days, days[1]).map((d) => d.day_number)).toEqual([1, 2])
+    expect(stayOf(days, days[2]).map((d) => d.day_number)).toEqual([3, 4])
   })
 })

@@ -36,12 +36,15 @@ src/
 ├── auth/           session storage, AuthProvider, RequireRole
 ├── components/
 │   ├── layout/     AppShell — top bar and account menu for signed-in areas
-│   └── ui/         Button, Icon, TextField, Chip, Spinner, ErrorState, Logo
+│   └── ui/         Button, Icon, TextField, Chip, Dialog, Menu, Toast, Spinner, ErrorState, Logo
 ├── features/
 │   ├── welcome/    landing page
 │   ├── auth/       sign in / sign up
 │   ├── plan/       the four preference steps and "Build my trip"
-│   ├── trips/      My trips and the trip page
+│   ├── trips/      My trips, the trip page and its edit dialogs (stops, hotel, details)
+│   ├── chat/       change the trip by asking, with Keep / Undo
+│   ├── summary/    costs, hotels to book, save, share, PDF and calendar
+│   ├── hotels/     hotel cards and offer comparison (shared with the hotel search)
 │   ├── shared/     public shared-trip page (/shared/:token)
 │   └── portal/     company and admin placeholders
 ├── lib/            formatting helpers
@@ -67,6 +70,9 @@ src/
 | `/sign-in`, `/sign-up` | everyone | Accounts (`?next=` returns to a page after signing in) |
 | `/plan/interests` → `budget` → `length` → `destinations` | everyone | Preference steps |
 | `/plan/build` | traveler | Builds the trip and opens it |
-| `/trips`, `/trips/:id` | traveler | My trips, trip page |
+| `/trips` | traveler | My trips |
+| `/trips/:id` | traveler | My trip — day tabs (`?day=2`), add / edit / move / remove stops, change hotel |
+| `/trips/:id/chat` | traveler | Chat with Keep / Undo and the live trip panel |
+| `/trips/:id/summary` | traveler | Costs, hotels to book, Save, Share link, PDF, calendar (.ics) |
 | `/shared/:token` | everyone | Read-only shared trip (`/shared/sample` is the seeded sample) |
 | `/company`, `/admin` | company, admin | Portals (coming next) |

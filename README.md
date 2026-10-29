@@ -167,5 +167,5 @@ All of these run on every pull request.
 ## Status
 
 Under active development as a graduation project at the Faculty of Engineering, Mansoura University.
-All 91 product endpoints are implemented and tested. The AI features run on rule-based stand-ins
+All 92 product endpoints are implemented and tested. The AI features run on rule-based stand-ins
 (`AI_MOCK=true`) behind fixed contracts in `app/ai/`; the trained models and LLM agents are the next phase.

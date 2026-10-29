@@ -255,3 +255,12 @@ def test_regenerate_and_change_days(client, me, world):
     assert [d["day_number"] for d in longer["itinerary"]] == [1, 2, 3, 4]
     assert longer["itinerary"][3]["items"] == [] and longer["itinerary"][3]["city_id"] == world["A"]
     assert client.patch(url, json={"days": 0}, headers=me).status_code == 422
+
+
+def test_city_places_for_add_dialog(client, world):
+    places = client.get(f"{API}/cities/{world['B']}/places")  # public, no login
+    assert places.status_code == 200
+    body = places.json()
+    assert [p["id"] for p in body] == [world["b2"], world["b1"]]  # by name: Market, Tomb One
+    assert body[1]["ticket_price"] == 150 and body[1]["interest_ids"] == [world["history"]]
+    assert client.get(f"{API}/cities/999999/places").status_code == 404

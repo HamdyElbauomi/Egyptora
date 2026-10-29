@@ -55,3 +55,20 @@ export function route(itinerary: TripDay[]): string {
   for (const day of itinerary) if (names[names.length - 1] !== day.city_name) names.push(day.city_name)
   return names.join(' → ')
 }
+
+
+export const TYPE_LABEL: Record<string, string> = { visit: 'Visit', meal: 'Meal', transport: 'Travel', free_time: 'Free time' }
+
+export function itemTitle(item: TripItem): string {
+  return item.place_name ?? item.note ?? TYPE_LABEL[item.type] ?? 'Stop'
+}
+
+/** The nights in a row spent in the same city as `day` (the stay this night belongs to). */
+export function stayOf(itinerary: TripDay[], day: TripDay): TripDay[] {
+  const days = itinerary
+  let start = days.findIndex((d) => d.id === day.id)
+  let end = start
+  while (start > 0 && days[start - 1].city_id === day.city_id) start--
+  while (end < days.length - 1 && days[end + 1].city_id === day.city_id) end++
+  return days.slice(start, end + 1)
+}
