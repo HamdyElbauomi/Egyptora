@@ -29,3 +29,9 @@ export function TripLayout() {
 export function useCurrentTrip(): Trip {
   return useOutletContext<Trip>()
 }
+
+/** The trip when the screen is opened inside one (/trips/:id/scan), otherwise undefined (/scan). */
+// oxlint-disable-next-line react/only-export-components
+export function useOptionalTrip(): Trip | undefined {
+  return useOutletContext<Trip | undefined>()
+}

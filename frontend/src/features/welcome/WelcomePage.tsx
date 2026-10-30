@@ -24,9 +24,14 @@ export function WelcomePage() {
             {session.role === 'traveler' ? 'My trips' : 'Dashboard'}
           </Link>
         ) : (
-          <Link to="/sign-in" className="text-base font-bold text-terracotta hover:text-terracotta-strong">
-            Sign in
-          </Link>
+          <div className="flex items-center gap-6">
+            <Link to="/partner/sign-up" className="hidden text-[15px] font-semibold text-ink-2 hover:text-ink sm:block">
+              For travel companies
+            </Link>
+            <Link to="/sign-in" className="text-base font-bold text-terracotta hover:text-terracotta-strong">
+              Sign in
+            </Link>
+          </div>
         )}
       </header>
 

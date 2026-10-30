@@ -9,6 +9,8 @@ interface AuthValue {
   signIn: (email: string, password: string) => Promise<Role>
   signUp: (name: string, email: string, password: string) => Promise<Role>
   signOut: () => void
+  /** for flows that return tokens themselves, like company sign-up */
+  adoptTokens: (tokens: Schemas['TokensOut']) => Role
 }
 
 const AuthContext = createContext<AuthValue | null>(null)
@@ -47,6 +49,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return save(unwrap(await api.POST('/api/v1/auth/register', { body: { name, email, password, language: 'en' } })))
   }, [queryClient])
 
+  const adoptTokens = useCallback(
+    (tokens: Schemas['TokensOut']) => {
+      forgetAccountData(queryClient)
+      return save(tokens)
+    },
+    [queryClient],
+  )
+
   const signOut = useCallback(() => {
     void api.POST('/api/v1/auth/logout').catch(() => undefined)
     writeSession(null)
@@ -54,8 +64,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [queryClient])
 
   const value = useMemo(
-    () => ({ session, user: session ? me.data : undefined, signIn, signUp, signOut }),
-    [session, me.data, signIn, signUp, signOut],
+    () => ({ session, user: session ? me.data : undefined, signIn, signUp, signOut, adoptTokens }),
+    [session, me.data, signIn, signUp, signOut, adoptTokens],
   )
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

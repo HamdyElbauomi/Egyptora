@@ -60,6 +60,12 @@ export function errorMessage(error: unknown, fallback = 'Something went wrong. P
   if (!error || typeof error !== 'object') return fallback
   const detail = (error as { detail?: unknown }).detail
   if (typeof detail === 'string') return detail
+  if (detail && typeof detail === 'object' && 'message' in detail) {
+    // e.g. the CSV import: { message, errors: [{ row, error }] }
+    const { message, errors } = detail as { message: string; errors?: { row: number; error: string }[] }
+    const lines = (errors ?? []).slice(0, 8).map((e) => `Row ${e.row}: ${e.error}`)
+    return [message, ...lines].join('\n')
+  }
   if (Array.isArray(detail) && detail.length) {
     const first = detail[0] as { msg?: string; loc?: (string | number)[] }
     const field = first.loc?.filter((part) => part !== 'body').join(' ')
@@ -88,4 +94,13 @@ export class ApiError extends Error {
     super(message)
     this.status = status
   }
+}
+
+/** For multipart uploads: openapi-fetch would JSON-encode the body, so hand it the FormData as is. */
+export const asForm = { bodySerializer: (body: unknown) => body as FormData }
+
+export function formData(fields: Record<string, string | Blob | null | undefined>): FormData {
+  const form = new FormData()
+  for (const [key, value] of Object.entries(fields)) if (value !== null && value !== undefined && value !== '') form.append(key, value)
+  return form
 }

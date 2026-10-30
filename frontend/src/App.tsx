@@ -14,11 +14,22 @@ import { BudgetStep } from '@/features/plan/steps/BudgetStep'
 import { DestinationsStep } from '@/features/plan/steps/DestinationsStep'
 import { InterestsStep } from '@/features/plan/steps/InterestsStep'
 import { LengthStep } from '@/features/plan/steps/LengthStep'
+import { CompanyShell } from '@/features/company/CompanyShell'
+import { CompanySignUpPage } from '@/features/company/CompanySignUpPage'
+import { DashboardPage } from '@/features/company/DashboardPage'
+import { OfferFormPage } from '@/features/company/OfferFormPage'
+import { OffersPage } from '@/features/company/OffersPage'
+import { ProfilePage } from '@/features/company/ProfilePage'
 import { ComingSoon } from '@/features/portal/ComingSoon'
 import { SharedTripPage } from '@/features/shared/SharedTripPage'
 import { MyTripsPage } from '@/features/trips/MyTripsPage'
 import { ChatPage } from '@/features/chat/ChatPage'
 import { SummaryPage } from '@/features/summary/SummaryPage'
+import { CompanyPage } from '@/features/companies/CompanyPage'
+import { HotelsPage } from '@/features/hotels/HotelsPage'
+import { MyScansPage } from '@/features/scan/MyScansPage'
+import { PlacePage } from '@/features/scan/PlacePage'
+import { ScanPage } from '@/features/scan/ScanPage'
 import { TripHome } from '@/features/trips/TripHome'
 import { TripLayout } from '@/features/trips/TripLayout'
 import { WelcomePage } from '@/features/welcome/WelcomePage'
@@ -44,6 +55,7 @@ export default function App() {
               <Route path="/sign-in" element={<AuthPage mode="sign-in" />} />
               <Route path="/sign-up" element={<AuthPage mode="sign-up" />} />
               <Route path="/shared/:token" element={<SharedTripPage />} />
+              <Route path="/companies/:companyId" element={<CompanyPage />} />
 
               {/* Planning works without an account; building the trip asks to sign in. */}
               <Route
@@ -70,23 +82,34 @@ export default function App() {
                 }
               >
                 <Route path="/trips" element={<MyTripsPage />} />
+                <Route path="/scan" element={<ScanPage />} />
+                <Route path="/scans" element={<MyScansPage />} />
+                <Route path="/places/:placeId" element={<PlacePage />} />
+                <Route path="/hotels" element={<HotelsPage />} />
                 <Route path="/trips/:tripId" element={<TripLayout />}>
                   <Route index element={<TripHome />} />
                   <Route path="chat" element={<ChatPage />} />
+                  <Route path="scan" element={<ScanPage />} />
+                  <Route path="hotels" element={<HotelsPage />} />
                   <Route path="summary" element={<SummaryPage />} />
                 </Route>
               </Route>
 
+              <Route path="/partner/sign-up" element={<CompanySignUpPage />} />
               <Route
-                path="/company/*"
+                path="/company"
                 element={
                   <RequireRole role="company">
-                    <AppShell nav={[{ to: '/company', label: 'Dashboard' }]} home="/company">
-                      <ComingSoon area="Company portal" />
-                    </AppShell>
+                    <CompanyShell />
                   </RequireRole>
                 }
-              />
+              >
+                <Route index element={<DashboardPage />} />
+                <Route path="offers" element={<OffersPage />} />
+                <Route path="offers/new" element={<OfferFormPage />} />
+                <Route path="offers/:offerId/edit" element={<OfferFormPage />} />
+                <Route path="profile" element={<ProfilePage />} />
+              </Route>
               <Route
                 path="/admin/*"
                 element={

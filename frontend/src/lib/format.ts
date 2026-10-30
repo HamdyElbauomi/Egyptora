@@ -32,3 +32,12 @@ export function formatDateRange(start: string | null | undefined, end: string | 
 export function plural(count: number, one: string, many = `${one}s`): string {
   return `${count} ${count === 1 ? one : many}`
 }
+
+/** "Nile Horizon Tours" → "NH" */
+export function initials(name: string): string {
+  return name
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w.charAt(0).toUpperCase())
+    .join('')
+}
