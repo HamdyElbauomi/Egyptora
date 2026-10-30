@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 import { useHotelOffers, type HotelCard, type HotelOffer } from '@/api/queries'
 import { Button } from '@/components/ui/Button'
 import { Chip } from '@/components/ui/Chip'
@@ -117,7 +118,9 @@ function OfferList({ hotelId, renderAction }: { hotelId: number; renderAction: (
             <li key={offer.offer_id} className="flex flex-wrap items-center gap-x-4 gap-y-2.5 border-t border-line py-3.5 first:border-t-0">
               <div className="min-w-0 basis-full sm:flex-1 sm:basis-56">
                 <p className="flex items-center gap-1.5 font-bold">
-                  {offer.company.name}
+                  <Link to={`/companies/${offer.company.id}`} className="hover:text-terracotta hover:underline">
+                    {offer.company.name}
+                  </Link>
                   {offer.company.trust_score !== null && offer.company.trust_score !== undefined && (
                     <span className="inline-flex items-center gap-0.5 text-sm font-semibold text-ink-2">
                       <Icon name="star" size={14} className="text-gold" />

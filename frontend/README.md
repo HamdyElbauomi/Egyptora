@@ -44,9 +44,12 @@ src/
 │   ├── trips/      My trips, the trip page and its edit dialogs (stops, hotel, details)
 │   ├── chat/       change the trip by asking, with Keep / Undo
 │   ├── summary/    costs, hotels to book, save, share, PDF and calendar
-│   ├── hotels/     hotel cards and offer comparison (shared with the hotel search)
+│   ├── hotels/     plain-language hotel search, filters, offer comparison
+│   ├── scan/       camera, recognized monument, verified Q&A, my scans, place page
+│   ├── companies/  public company page with reviews (travelers can review)
+│   ├── company/    company portal: sign-up, review status, dashboard, offers, profile
 │   ├── shared/     public shared-trip page (/shared/:token)
-│   └── portal/     company and admin placeholders
+│   └── portal/     admin placeholder (day 4)
 ├── lib/            formatting helpers
 └── styles/         Tailwind setup and design tokens
 ```
@@ -75,4 +78,10 @@ src/
 | `/trips/:id/chat` | traveler | Chat with Keep / Undo and the live trip panel |
 | `/trips/:id/summary` | traveler | Costs, hotels to book, Save, Share link, PDF, calendar (.ics) |
 | `/shared/:token` | everyone | Read-only shared trip (`/shared/sample` is the seeded sample) |
-| `/company`, `/admin` | company, admin | Portals (coming next) |
+| `/scan`, `/trips/:id/scan` | traveler | Scan a monument (in a trip: shows or adds it to a day) |
+| `/scans`, `/places/:id` | traveler | My scans, place page with Q&A |
+| `/hotels`, `/trips/:id/hotels` | traveler | Hotel search in plain words or filters (in a trip: choose nights) |
+| `/companies/:id` | everyone | Company page, reviews; travelers who booked with it can review |
+| `/partner/sign-up` | everyone | Company application with tourism license |
+| `/company`, `/company/offers`, `/company/offers/new`, `/company/offers/:id/edit`, `/company/profile` | company | Portal (until approval: the review-status page) |
+| `/admin` | admin | Placeholder (day 4) |

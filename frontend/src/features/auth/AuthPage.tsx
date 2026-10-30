@@ -103,8 +103,10 @@ export function AuthPage({ mode }: { mode: 'sign-in' | 'sign-up' }) {
             </p>
             {!isUp && (
               <p className="mt-2 text-[15px] text-ink-2">
-                Run a hotel company?{' '}
-                <span className="font-semibold text-ink-3">Company sign-up opens soon.</span>
+                Run a travel company?{' '}
+                <Link to="/partner/sign-up" className="font-bold text-terracotta hover:text-terracotta-strong">
+                  List your hotel offers
+                </Link>
               </p>
             )}
 

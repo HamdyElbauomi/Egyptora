@@ -9,11 +9,15 @@ export function TravelerShell() {
     ? [
         { to: `/trips/${tripId}`, label: 'My trip', end: true },
         { to: `/trips/${tripId}/chat`, label: 'Chat' },
+        { to: `/trips/${tripId}/scan`, label: 'Scan' },
+        { to: `/trips/${tripId}/hotels`, label: 'Hotels' },
         { to: `/trips/${tripId}/summary`, label: 'Summary' },
       ]
     : [
         { to: '/trips', label: 'My trips', end: true },
-        { to: '/plan/interests', label: 'Plan a trip' },
+        { to: '/scan', label: 'Scan' },
+        { to: '/hotels', label: 'Hotels' },
+        { to: '/scans', label: 'My scans' },
       ]
   return <AppShell nav={nav} home="/trips" />
 }
