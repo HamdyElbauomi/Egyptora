@@ -128,7 +128,7 @@ Settings are read from environment variables or `.env`:
 | `USE_LLM` | Use the language model for chat, hotel search and place Q&A (falls back to the rules on any model error) | `false` |
 | `LLM_API_KEY` | API key for the language model provider (never commit it) | — |
 | `LLM_BASE_URL` | OpenAI-compatible API address | `https://openrouter.ai/api/v1` |
-| `LLM_MODEL` | Model name at that provider | `nvidia/nemotron-3.5-lightning:free` |
+| `LLM_MODEL` | Model name at that provider | `nvidia/nemotron-3.5-super-vl:free` |
 
 ## Project structure
 

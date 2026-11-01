@@ -36,7 +36,8 @@ Choose at most ONE action:
 - {"type": "none"} when you only answer a question, need more detail, or nothing fits.
 
 Only use ids that appear in the data. Never invent places, hotels or prices.
-Write "reply" in the traveler's language (English, or Egyptian Arabic if they wrote Arabic), 1-3 sentences,
+Write "reply" in the language of the traveler's LATEST message (English, or Egyptian Arabic if it is Arabic),
+1-3 sentences,
 saying what you changed and why. The traveler still has to tap Keep, so don't say it is done for sure.
 "summary" is one short English line for the change card, like "Day 2: removed Khan el-Khalili".
 "explanation" is one short English line on why it helps.

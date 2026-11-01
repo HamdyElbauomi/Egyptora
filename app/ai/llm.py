@@ -60,6 +60,8 @@ def complete_json(system: str, user: str, *, max_tokens: int = 900) -> dict:
                 "temperature": 0.2,
                 "max_tokens": max_tokens,
                 "response_format": {"type": "json_object"},
+                # OpenRouter's switch for thinking models; other providers ignore unknown fields
+                "reasoning": {"enabled": settings.llm_reasoning},
             },
             timeout=settings.llm_timeout_seconds,
         )
@@ -70,8 +72,11 @@ def complete_json(system: str, user: str, *, max_tokens: int = 900) -> dict:
         log.warning("LLM %s answered %s in %s ms", settings.llm_model, response.status_code, elapsed)
         raise LLMError(f"the model API answered {response.status_code}")
     try:
-        content = response.json()["choices"][0]["message"]["content"] or ""
+        choice = response.json()["choices"][0]
+        content = choice["message"]["content"] or ""
     except (ValueError, KeyError, IndexError, TypeError) as exc:
         raise LLMError("unexpected response from the model API") from exc
+    if choice.get("finish_reason") == "length":
+        raise LLMError("the model ran out of tokens before finishing")
     log.info("LLM %s answered in %s ms", settings.llm_model, elapsed)
     return parse_json_object(content)

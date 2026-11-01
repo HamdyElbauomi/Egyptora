@@ -6,7 +6,7 @@ import httpx
 import pytest
 
 from app.ai import llm
-from app.ai.nl2sql import CityRef, NL2SQLIn, to_sql
+from app.ai.nl2sql import CityRef, NL2SQLIn, to_sql, unasked_conditions
 from app.ai.place_qa import NOT_COVERED, AskIn, ask
 from app.core.config import settings
 from tests.conftest import API
@@ -112,3 +112,15 @@ def test_chat_falls_back_when_the_model_invents_ids(client, me, world, model):
     res = client.post(f"{API}/trips/{trip['id']}/messages", json={"content": "make day 1 lighter"}, headers=me)
     assert res.status_code == 201, res.text
     assert res.json()["reply"]["content"].startswith("I removed")  # the rules agent's answer
+
+
+def test_filters_nobody_asked_for_are_caught():
+    sql = "SELECT hotel_id FROM hotel_best_price WHERE city_id = 1 AND min_price <= 1000 LIMIT 20"
+    assert unasked_conditions(sql, "cheap hotel in Giza") == ["1000"]
+    sql = "SELECT hotel_id FROM hotel_best_price WHERE city_id = 2 AND stars = 4 AND min_price <= 2500 LIMIT 20"
+    assert unasked_conditions(sql, "4-star in Luxor under 2,500") == []
+    sql = (
+        "SELECT hotel_id FROM hotel_best_price WHERE hotel_id IN (SELECT hotel_id FROM offers WHERE free_cancellation)"
+    )
+    assert unasked_conditions(sql, "quiet hotel in Siwa") == ["free_cancellation"]
+    assert unasked_conditions("SELECT hotel_id FROM hotel_best_price WHERE stars = 5", "فندق ٥ نجوم") == []
