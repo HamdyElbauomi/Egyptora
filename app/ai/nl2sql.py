@@ -9,11 +9,13 @@ Contract for the real LLM:
 - One SELECT, no CTEs, no comments, and it must return a hotel_id column.
 - `examples` are admin-fixed questions with their correct SQL: follow them.
 
-AI_MOCK=true uses rules_sql() below: it understands city names (English and Arabic), stars, a max price,
+USE_LLM=true asks the language model (llm_sql). rules_sql() below is the default and the fallback:
+it understands city names (English and Arabic), stars, a max price,
 free cancellation, breakfast, and cheap/luxury ordering. A question that matches a training example
 exactly uses that example's SQL.
 """
 
+import json
 import re
 
 from fastapi import APIRouter
@@ -101,11 +103,60 @@ def rules_sql(body: NL2SQLIn) -> NL2SQLOut:
     return NL2SQLOut(sql=sql, understood=" ".join([noun, *words]) if where else "All hotels, cheapest first")
 
 
+SQL_SYSTEM = """You turn a traveler's hotel search into ONE PostgreSQL SELECT.
+
+Schema (nothing else exists):
+{schema}
+Rules:
+- Query only hotel_best_price; use offers only inside a sub-query (hotel_id IN (SELECT hotel_id FROM offers ...)).
+- The result MUST include a hotel_id column. Order sensibly and end with LIMIT 20.
+- Use city ids from the cities list; never compare city names.
+- One statement, no comments, no WITH, no semicolons, no other tables or functions.
+- "understood": a short English summary of what you searched for, like "4-star hotels in Luxor under 1500 EGP/night".
+Reply with a JSON object only: {{"sql": "...", "understood": "..."}}"""
+
+
+def llm_sql(body: NL2SQLIn) -> NL2SQLOut:
+    from app.ai.llm import LLMError, complete_json
+
+    payload = {
+        "question": body.question,
+        "city_already_chosen": body.city_id,
+        "cities": [{"id": c.id, "name": c.name} for c in body.cities],
+        "checked_examples": body.examples[:8],
+    }
+    system = SQL_SYSTEM.format(schema=SCHEMA.strip())
+    out = complete_json(system, json.dumps(payload, ensure_ascii=False), max_tokens=400)
+    sql, understood = out.get("sql"), out.get("understood")
+    if not isinstance(sql, str) or not sql.strip().lower().startswith("select"):
+        raise LLMError("the model did not write a SELECT")
+    if not re.search(r"\bhotel_id\b", sql.lower().split(" from ", 1)[0]):
+        raise LLMError("the SELECT has no hotel_id column")
+    return NL2SQLOut(sql=sql.strip().rstrip(";"), understood=understood if isinstance(understood, str) else None)
+
+
+def exact_example(body: NL2SQLIn) -> NL2SQLOut | None:
+    q = body.question.lower().strip()
+    for example in body.examples:
+        if example["question"].strip().lower() == q:
+            return NL2SQLOut(sql=example["sql"], understood="A search our team checked by hand")
+    return None
+
+
 def to_sql(body: NL2SQLIn) -> NL2SQLOut:
-    if settings.ai_mock:
-        return rules_sql(body)
-    # TODO(Person 5): call the LLM with SCHEMA + body.examples here, and return its SELECT.
-    raise NotImplementedError
+    """A question the admin already fixed uses that SQL. Otherwise the model writes it (USE_LLM=true);
+    if the model fails or writes SQL our guard would refuse, the rules below answer instead."""
+    if settings.llm_ready and exact_example(body) is None:
+        from app.ai.llm import LLMError
+        from app.modules.ai_quality.service import UnsafeSQL, check_sql
+
+        try:
+            out = llm_sql(body)
+            check_sql(out.sql)
+            return out
+        except (LLMError, UnsafeSQL):
+            pass
+    return rules_sql(body)
 
 
 @router.post("/nl2sql", response_model=NL2SQLOut, summary="NL to SQL (AI)")

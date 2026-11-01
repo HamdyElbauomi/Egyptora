@@ -5,9 +5,11 @@ Then: the answer is shown under the scan result.
 
 AI_MOCK=true: a simple grounded answer: the sentences of verified_info that share the most words with
 the question. When no sentence matches, grounded=false and the answer says the notes don't cover it.
-The real LLM must keep the same rule: answer from verified_info only, else grounded=false.
+With USE_LLM=true the model answers from verified_info only (else grounded=false), and the matcher
+above is the fallback when the model can't be reached.
 """
 
+import json
 import re
 
 from fastapi import APIRouter
@@ -51,11 +53,38 @@ def grounded_answer(body: AskIn) -> AskOut:
     return AskOut(answer=" ".join(s for _, _, s in sorted(best, key=lambda x: x[1])), grounded=True)
 
 
+QA_SYSTEM = """You answer travelers' questions about one place in Egypt.
+Use ONLY the verified notes you are given. Never add facts from memory, even well-known ones.
+If the notes don't answer the question, say so: set "grounded" to false.
+Answer in the language of the question (English or Arabic), in 1-3 short sentences.
+Reply with a JSON object only: {"answer": "...", "grounded": true}"""
+
+
+def llm_answer(body: AskIn) -> AskOut:
+    from app.ai.llm import LLMError, complete_json
+
+    out = complete_json(
+        QA_SYSTEM,
+        json.dumps({"place": body.place_name, "verified_notes": body.verified_info, "question": body.question}),
+        max_tokens=300,
+    )
+    answer, grounded = out.get("answer"), out.get("grounded")
+    if not isinstance(answer, str) or not isinstance(grounded, bool):
+        raise LLMError("the answer is missing")
+    if not grounded or not answer.strip():
+        return AskOut(answer=NOT_COVERED.format(name=body.place_name), grounded=False)
+    return AskOut(answer=answer.strip(), grounded=True)
+
+
 def ask(body: AskIn) -> AskOut:
-    if settings.ai_mock:
-        return grounded_answer(body)
-    # TODO(Person 4): call the LLM with verified_info as the only context.
-    raise NotImplementedError
+    if settings.llm_ready:
+        from app.ai.llm import LLMError
+
+        try:
+            return llm_answer(body)
+        except LLMError:
+            pass  # fall back to the sentence matcher below
+    return grounded_answer(body)
 
 
 @router.post("/ask", response_model=AskOut, summary="Place Q&A (AI)")
