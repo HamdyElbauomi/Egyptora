@@ -12,12 +12,12 @@ from app.modules.catalog.models import City
 
 def seed(db: Session) -> None:
     city = dict(db.execute(select(City.name, City.id)).all())
-    if not {"Cairo", "Luxor", "Aswan"} <= city.keys():
+    if not {"Cairo & Giza", "Luxor", "Aswan"} <= city.keys():
         return
     examples = [
         (
             "family hotel in cairo with breakfast",
-            f"SELECT hotel_id, hotel_name, min_price FROM hotel_best_price WHERE city_id = {city['Cairo']} "
+            f"SELECT hotel_id, hotel_name, min_price FROM hotel_best_price WHERE city_id = {city['Cairo & Giza']} "
             "AND hotel_id IN (SELECT hotel_id FROM offers WHERE status = 'active' AND breakfast_included) "
             "ORDER BY stars DESC NULLS LAST, min_price",
         ),

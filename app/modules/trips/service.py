@@ -205,8 +205,10 @@ def save_plan(db: Session, trip: Trip, plan: PlanOut, city_ids: list[int]) -> No
 
 
 def default_title(db: Session, days: int, city_ids: list[int]) -> str:
-    names = dict(db.execute(select(City.id, City.name).where(City.id.in_(city_ids))).all())
-    return f"{days} day{'s' if days > 1 else ''} in {' & '.join(names[c] for c in city_ids)}"
+    names = [dict(db.execute(select(City.id, City.name).where(City.id.in_(city_ids))).all())[c] for c in city_ids]
+    # "Cairo & Giza & Luxor" reads badly, so names that already hold "&" are listed with commas
+    joiner = ", " if any("&" in n for n in names) else " & "
+    return f"{days} day{'s' if days > 1 else ''} in {joiner.join(names)}"
 
 
 def generate_trip(db: Session, user: User, body: GenerateTripIn) -> Trip:

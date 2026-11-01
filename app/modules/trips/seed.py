@@ -1,6 +1,6 @@
 """Seed: one sample trip for traveler1@egyptora.dev. Owner: Person 2.
 
-4 days in Cairo and Luxor, mid budget, ancient history + museums, starting a month from today.
+4 days in Cairo & Giza and Luxor, mid budget, history & monuments, starting a month from today.
 Built with the same generate_trip() the app uses, so it shows real places and the seeded hotel offers.
 It is shared at /shared/sample, which the Welcome screen's "See a sample trip" button opens.
 """
@@ -27,8 +27,8 @@ def seed(db: Session) -> None:
     if existing is not None:
         share_sample(db, existing)
         return
-    interests = list(db.scalars(select(Interest.id).where(Interest.name.in_(["Ancient history", "Museums"]))))
-    cities = {c.name: c.id for c in db.scalars(select(City).where(City.name.in_(["Cairo", "Luxor"])))}
+    interests = list(db.scalars(select(Interest.id).where(Interest.name.in_(["History & monuments", "Photography"]))))
+    cities = {c.name: c.id for c in db.scalars(select(City).where(City.name.in_(["Cairo & Giza", "Luxor"])))}
     if not interests or len(cities) < 2:
         return
     body = GenerateTripIn(
@@ -37,7 +37,7 @@ def seed(db: Session) -> None:
         budget_total=15000,
         days=4,
         start_date=date.today() + timedelta(days=30),
-        city_ids=[cities["Cairo"], cities["Luxor"]],
+        city_ids=[cities["Cairo & Giza"], cities["Luxor"]],
     )
     share_sample(db, generate_trip(db, user, body))
 

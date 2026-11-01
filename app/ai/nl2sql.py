@@ -19,6 +19,7 @@ import re
 from fastapi import APIRouter
 from pydantic import BaseModel
 
+from app.ai.cities import mentions_city
 from app.core.config import settings
 
 router = APIRouter(prefix="/ai", tags=["AI (internal)"])
@@ -30,14 +31,6 @@ offers(id, hotel_id, company_id, room_type, price_per_night, breakfast_included,
        cancellation_days, valid_from, valid_to, status)  -- status 'active' = on sale
 """
 
-CITY_ALIASES = {
-    "cairo": ("القاهرة", "القاهره"),
-    "giza": ("الجيزة", "الجيزه"),
-    "luxor": ("الأقصر", "الاقصر"),
-    "aswan": ("أسوان", "اسوان"),
-    "alexandria": ("الإسكندرية", "الاسكندرية", "اسكندرية"),
-    "hurghada": ("الغردقة", "الغردقه"),
-}
 ARABIC_DIGITS = str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789")
 
 
@@ -66,7 +59,7 @@ def rules_sql(body: NL2SQLIn) -> NL2SQLOut:
 
     where, words, noun = [], [], "Hotels"
     city = next(
-        (c for c in body.cities if c.name.lower() in q or any(a in q for a in CITY_ALIASES.get(c.name.lower(), ()))),
+        (c for c in body.cities if mentions_city(c.name, q)),
         None,
     )
     city_id = city.id if city else body.city_id
