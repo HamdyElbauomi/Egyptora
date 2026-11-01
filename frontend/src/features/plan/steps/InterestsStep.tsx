@@ -4,7 +4,7 @@ import { ErrorState } from '@/components/ui/ErrorState'
 import { Icon } from '@/components/ui/Icon'
 import { PageLoader } from '@/components/ui/Spinner'
 import { toggleId } from '../draft'
-import { interestMeta } from '../interestMeta'
+import { isIconName } from '@/components/ui/icons'
 import { usePlan } from '../PlanContext'
 import { StepFrame } from '../StepFrame'
 
@@ -29,7 +29,6 @@ export function InterestsStep() {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-[repeat(auto-fill,minmax(190px,1fr))] sm:gap-4">
           {interests.data.map((interest) => {
             const selected = draft.interestIds.includes(interest.id)
-            const meta = interestMeta(interest.icon)
             return (
               <button
                 key={interest.id}
@@ -45,7 +44,7 @@ export function InterestsStep() {
                     selected ? 'bg-terracotta text-white' : 'bg-muted text-terracotta'
                   }`}
                 >
-                  <Icon name={meta.icon} size={24} />
+                  <Icon name={isIconName(interest.icon) ? interest.icon : 'spark'} size={24} />
                 </span>
                 {selected && (
                   <span className="absolute top-3 right-3 grid size-[26px] sm:top-[18px] sm:right-[18px] place-items-center rounded-full bg-terracotta text-white">
@@ -53,7 +52,9 @@ export function InterestsStep() {
                   </span>
                 )}
                 <span className="mt-3.5 text-base leading-snug font-bold sm:mt-[18px] sm:text-lg text-ink">{interest.name}</span>
-                <span className="mt-1.5 text-[13px] leading-normal text-ink-3 sm:mt-2.5 sm:text-sm">{meta.description}</span>
+                {interest.description && (
+                  <span className="mt-1.5 text-[13px] leading-normal text-ink-3 sm:mt-2.5 sm:text-sm">{interest.description}</span>
+                )}
               </button>
             )
           })}

@@ -12,7 +12,9 @@ from app.modules.accounts.models import User
 from app.modules.admin_stats.schemas import (
     AIStats,
     CatalogStats,
+    CityShare,
     CompanyStats,
+    DayCount,
     NeedsAttention,
     OfferStats,
     ReviewStats,
@@ -44,6 +46,35 @@ def count(db: Session, stmt) -> int:
 
 def rounded(value, digits: int = 1) -> float | None:
     return round(float(value), digits) if value is not None else None
+
+
+TREND_DAYS = 14
+
+
+def trips_per_day(db: Session) -> list[DayCount]:
+    """The last 14 days (UTC), oldest first, with zero for days without trips."""
+    today = datetime.now(UTC).date()
+    first = today - timedelta(days=TREND_DAYS - 1)
+    day = func.date(func.timezone("UTC", Trip.created_at))
+    counts = dict(db.execute(select(day, func.count(Trip.id)).where(day >= first).group_by(day)).all())
+    days = [first + timedelta(days=i) for i in range(TREND_DAYS)]
+    return [DayCount(date=d, trips=int(counts.get(d, 0))) for d in days]
+
+
+def top_destinations(db: Session, total_trips: int, limit: int = 5) -> list[CityShare]:
+    """Cities by how many different trips spend at least one day there."""
+    trips = func.count(func.distinct(TripDay.trip_id)).label("trips")
+    rows = db.execute(
+        select(City.id, City.name, trips)
+        .join(TripDay, TripDay.city_id == City.id)
+        .group_by(City.id, City.name)
+        .order_by(trips.desc(), City.name)
+        .limit(limit)
+    ).all()
+    return [
+        CityShare(city_id=cid, city_name=name, trips=int(n), share=round(n / total_trips, 3) if total_trips else 0)
+        for cid, name, n in rows
+    ]
 
 
 @router.get("/stats", response_model=StatsOut)
@@ -83,6 +114,7 @@ def stats(user: User = Depends(require_role("admin")), db: Session = Depends(get
             created_last_7_days=count(db, select(Trip.id).where(Trip.created_at >= week_ago)),
             avg_days=rounded(avg_days),
             avg_total_cost=rounded(avg_cost, 0),
+            per_day=trips_per_day(db),
         ),
         companies=CompanyStats(
             pending=companies.get("pending", 0),
@@ -108,6 +140,7 @@ def stats(user: User = Depends(require_role("admin")), db: Session = Depends(get
             else None,
             chat_keep_rate=metrics.chat.keep_rate,
         ),
+        top_destinations=top_destinations(db, sum(trip_status.values())),
         needs_attention=NeedsAttention(
             pending_companies=companies.get("pending", 0),
             low_price_offers=low_price,

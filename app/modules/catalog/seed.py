@@ -12,14 +12,14 @@ CITIES = [
 ]
 
 INTERESTS = [
-    ("Ancient history", "pyramid"),
-    ("Museums", "museum"),
-    ("Food", "utensils"),
-    ("Nile and nature", "waves"),
-    ("Markets and shopping", "shopping-bag"),
-    ("Nightlife", "moon"),
-    ("Religious sites", "landmark"),
-    ("Photography", "camera"),
+    ("Ancient history", "history", "Temples, tombs and the pyramids"),
+    ("Museums", "image", "Treasures, mummies and old masters"),
+    ("Food", "food", "Street food, cooking and bazaars"),
+    ("Nile and nature", "leaf", "Felucca rides, gardens and islands"),
+    ("Markets and shopping", "briefcase", "Souks, crafts and spices"),
+    ("Nightlife", "moon", "Rooftops and evening Nile cruises"),
+    ("Religious sites", "pin", "Mosques, churches and old quarters"),
+    ("Photography", "camera", "Viewpoints and golden hours"),
 ]
 
 
@@ -27,6 +27,6 @@ def seed(db: Session) -> None:
     for name, desc, lat, lng in CITIES:
         if db.scalar(select(City).where(City.name == name)) is None:
             db.add(City(name=name, description=desc, lat=lat, lng=lng))
-    for name, icon in INTERESTS:
+    for name, icon, description in INTERESTS:
         if db.scalar(select(Interest).where(Interest.name == name)) is None:
-            db.add(Interest(name=name, icon=icon))
+            db.add(Interest(name=name, icon=icon, description=description))

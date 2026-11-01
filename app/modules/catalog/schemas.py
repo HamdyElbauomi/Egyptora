@@ -1,5 +1,7 @@
 """Request/response shapes for cities and interests."""
 
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -36,14 +38,24 @@ class CityCardOut(CityOut):
     places_count: int
 
 
+# Icon names from the design's icon set (frontend/src/assets/icons). The admin picks one per interest.
+INTEREST_ICONS = (
+    "history", "image", "food", "leaf", "waves", "briefcase", "moon", "pin", "camera", "mountain",
+    "music", "spark", "star", "zap", "train", "bus", "bed", "shield", "user", "chat",
+)  # fmt: skip
+IconName = Literal[INTEREST_ICONS]  # type: ignore[valid-type]
+
+
 class InterestIn(BaseModel):
     name: str = Field(min_length=2, max_length=60, examples=["Diving"])
-    icon: str | None = Field(default=None, max_length=60, examples=["waves"])
+    icon: IconName | None = Field(default=None, examples=["waves"])
+    description: str | None = Field(default=None, max_length=160, examples=["Reefs, boats and the Red Sea"])
 
 
 class InterestUpdateIn(BaseModel):
     name: str | None = Field(default=None, min_length=2, max_length=60)
-    icon: str | None = Field(default=None, max_length=60)
+    icon: IconName | None = None
+    description: str | None = Field(default=None, max_length=160)
 
 
 class InterestOut(BaseModel):
@@ -52,6 +64,7 @@ class InterestOut(BaseModel):
     id: int
     name: str
     icon: str | None
+    description: str | None
 
 
 class CitySuggestion(BaseModel):

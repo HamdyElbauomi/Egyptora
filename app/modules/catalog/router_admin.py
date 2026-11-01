@@ -44,10 +44,10 @@ def update_city(city_id: int, body: CityUpdateIn, user: User = Depends(admin), d
 
 @router.post("/interests", response_model=InterestOut, status_code=201)
 def add_interest(body: InterestIn, user: User = Depends(admin), db: Session = Depends(get_db)) -> Interest:
-    """Why: add a new interest chip (for example "Diving").
+    """Why: add a new interest chip (for example "Diving"), with its icon and a short line shown on the card.
     Then: shows in preference step 1 and can tag places."""
     ensure_unique_name(db, Interest, body.name)
-    interest = Interest(name=body.name.strip(), icon=body.icon)
+    interest = Interest(name=body.name.strip(), icon=body.icon, description=body.description)
     db.add(interest)
     db.commit()
     db.refresh(interest)
@@ -58,7 +58,7 @@ def add_interest(body: InterestIn, user: User = Depends(admin), db: Session = De
 def update_interest(
     interest_id: int, body: InterestUpdateIn, user: User = Depends(admin), db: Session = Depends(get_db)
 ) -> Interest:
-    """Why: rename an interest or change its icon. Only the fields you send are changed."""
+    """Why: rename an interest or change its icon or description. Only the fields you send are changed."""
     interest = get_interest_or_404(db, interest_id)
     changes = body.model_dump(exclude_unset=True)
     if "name" in changes:

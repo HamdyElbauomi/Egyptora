@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import type { IconName } from './icons'
 
 /* The design's icon set, exported unchanged from Figma. Each icon is painted with
    the current text colour through a CSS mask, so `text-*` classes recolour it. */
@@ -11,12 +12,7 @@ const urls: Record<string, string> = Object.fromEntries(
   Object.entries(files).map(([path, url]) => [path.split('/').pop()!.replace('.svg', ''), url]),
 )
 
-export type IconName =
-  | 'alert' | 'arrowL' | 'arrowR' | 'bed' | 'bookmark' | 'briefcase' | 'bus' | 'cal' | 'camera' | 'chart'
-  | 'chat' | 'check' | 'chev' | 'clock' | 'code' | 'download' | 'edit' | 'eye' | 'file' | 'filter' | 'flip'
-  | 'food' | 'history' | 'image' | 'leaf' | 'link' | 'list' | 'mic' | 'minus' | 'moon' | 'more' | 'mountain'
-  | 'music' | 'pin' | 'plus' | 'search' | 'send' | 'share' | 'shield' | 'sliders' | 'spark' | 'star' | 'train'
-  | 'trendDown' | 'upload' | 'user' | 'waves' | 'x' | 'zap'
+export type { IconName }
 
 interface IconProps {
   name: IconName

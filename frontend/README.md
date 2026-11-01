@@ -49,7 +49,7 @@ src/
 │   ├── companies/  public company page with reviews (travelers can review)
 │   ├── company/    company portal: sign-up, review status, dashboard, offers, profile
 │   ├── shared/     public shared-trip page (/shared/:token)
-│   └── portal/     admin placeholder (day 4)
+│   └── admin/      admin: overview, companies, hotels & offers, places, cities & interests, AI quality
 ├── lib/            formatting helpers
 └── styles/         Tailwind setup and design tokens
 ```
@@ -59,9 +59,11 @@ src/
 - **Design tokens** live in `src/styles/index.css` (`@theme`). Use `bg-canvas`, `text-ink-2`, `border-line-strong`,
   `bg-terracotta`… rather than raw hex values. Headings use `font-display` (Fraunces); body text is Manrope.
 - **Icons** in `src/assets/icons/` are exported unchanged from Figma. `<Icon name="spark" />` paints them with the
-  current text colour, so `text-terracotta` recolours an icon.
+  current text colour, so `text-terracotta` recolours an icon. `src/components/ui/icons.ts` lists them; a test keeps
+  that list in step with the files. Interests store one of these names (the admin picks it), plus a description.
 - **API calls** go through `api` in `src/api/client.ts`: it adds the access token, refreshes it once on a 401, and
   `unwrap()` turns FastAPI errors into readable messages.
+- **Errors:** every screen has loading, empty and error states; an error boundary catches anything unexpected.
 - **Planning without an account:** answers are kept in the browser (`localStorage`) until “Build my trip”, which
   asks the traveler to sign up or sign in first and then builds the trip.
 
@@ -84,4 +86,9 @@ src/
 | `/companies/:id` | everyone | Company page, reviews; travelers who booked with it can review |
 | `/partner/sign-up` | everyone | Company application with tourism license |
 | `/company`, `/company/offers`, `/company/offers/new`, `/company/offers/:id/edit`, `/company/profile` | company | Portal (until approval: the review-status page) |
-| `/admin` | admin | Placeholder (day 4) |
+| `/admin` | admin | Overview: totals, trips per day, top destinations, needs-attention list, CSV report |
+| `/admin/companies` | admin | Approve with the trust checklist and AI review analysis, reject, suspend |
+| `/admin/hotels` | admin | Hotel catalog (add, edit, delete, CSV import) and offers to check (flag / unflag) |
+| `/admin/places` | admin | Places and their verified notes, interests, recognition label and photos |
+| `/admin/catalog` | admin | Cities, and interests with their icon and description |
+| `/admin/ai` | admin | Failed or empty hotel searches → fix SQL → training; chat keep rate; label unsure scans |

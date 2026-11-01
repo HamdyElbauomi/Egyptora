@@ -1,6 +1,8 @@
 """Response shape for the admin overview. Owner: Person 3."""
 
-from pydantic import BaseModel
+import datetime as dt
+
+from pydantic import BaseModel, Field
 
 
 class UserStats(BaseModel):
@@ -8,6 +10,18 @@ class UserStats(BaseModel):
     company_accounts: int
     admins: int
     new_last_7_days: int
+
+
+class DayCount(BaseModel):
+    date: dt.date
+    trips: int
+
+
+class CityShare(BaseModel):
+    city_id: int
+    city_name: str
+    trips: int
+    share: float = Field(description="Share of all trips that visit this city (0-1)")
 
 
 class TripStats(BaseModel):
@@ -18,6 +32,7 @@ class TripStats(BaseModel):
     created_last_7_days: int
     avg_days: float | None
     avg_total_cost: float | None
+    per_day: list[DayCount] = Field(description="Trips created on each of the last 14 days, oldest first")
 
 
 class CompanyStats(BaseModel):
@@ -69,4 +84,5 @@ class StatsOut(BaseModel):
     catalog: CatalogStats
     reviews: ReviewStats
     ai: AIStats
+    top_destinations: list[CityShare] = Field(description="Cities by how many trips visit them, top 5")
     needs_attention: NeedsAttention
