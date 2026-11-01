@@ -926,7 +926,7 @@ export interface paths {
         put?: never;
         /**
          * Add Interest
-         * @description Why: add a new interest chip (for example "Diving").
+         * @description Why: add a new interest chip (for example "Diving"), with its icon and a short line shown on the card.
          *     Then: shows in preference step 1 and can tag places.
          */
         post: operations["add_interest_api_v1_admin_interests_post"];
@@ -951,7 +951,7 @@ export interface paths {
         head?: never;
         /**
          * Update Interest
-         * @description Why: rename an interest or change its icon. Only the fields you send are changed.
+         * @description Why: rename an interest or change its icon or description. Only the fields you send are changed.
          */
         patch: operations["update_interest_api_v1_admin_interests__interest_id__patch"];
         trace?: never;
@@ -2368,6 +2368,20 @@ export interface components {
             /** Name */
             name: string;
         };
+        /** CityShare */
+        CityShare: {
+            /** City Id */
+            city_id: number;
+            /** City Name */
+            city_name: string;
+            /** Trips */
+            trips: number;
+            /**
+             * Share
+             * @description Share of all trips that visit this city (0-1)
+             */
+            share: number;
+        };
         /** CitySuggestion */
         CitySuggestion: {
             city: components["schemas"]["CityOut"];
@@ -2632,6 +2646,16 @@ export interface components {
             offer_id: number | null;
             /** Items */
             items: components["schemas"]["ItemAfter"][];
+        };
+        /** DayCount */
+        DayCount: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Trips */
+            trips: number;
         };
         /** DayHotelOut */
         DayHotelOut: {
@@ -2935,7 +2959,12 @@ export interface components {
              * Icon
              * @example waves
              */
-            icon?: string | null;
+            icon?: ("history" | "image" | "food" | "leaf" | "waves" | "briefcase" | "moon" | "pin" | "camera" | "mountain" | "music" | "spark" | "star" | "zap" | "train" | "bus" | "bed" | "shield" | "user" | "chat") | null;
+            /**
+             * Description
+             * @example Reefs, boats and the Red Sea
+             */
+            description?: string | null;
         };
         /** InterestOut */
         InterestOut: {
@@ -2945,13 +2974,17 @@ export interface components {
             name: string;
             /** Icon */
             icon: string | null;
+            /** Description */
+            description: string | null;
         };
         /** InterestUpdateIn */
         InterestUpdateIn: {
             /** Name */
             name?: string | null;
             /** Icon */
-            icon?: string | null;
+            icon?: ("history" | "image" | "food" | "leaf" | "waves" | "briefcase" | "moon" | "pin" | "camera" | "mountain" | "music" | "spark" | "star" | "zap" | "train" | "bus" | "bed" | "shield" | "user" | "chat") | null;
+            /** Description */
+            description?: string | null;
         };
         /** ItemAfter */
         ItemAfter: {
@@ -3906,6 +3939,11 @@ export interface components {
             catalog: components["schemas"]["CatalogStats"];
             reviews: components["schemas"]["ReviewStats"];
             ai: components["schemas"]["AIStats"];
+            /**
+             * Top Destinations
+             * @description Cities by how many trips visit them, top 5
+             */
+            top_destinations: components["schemas"]["CityShare"][];
             needs_attention: components["schemas"]["NeedsAttention"];
         };
         /** SuggestOut */
@@ -4130,6 +4168,11 @@ export interface components {
             avg_days: number | null;
             /** Avg Total Cost */
             avg_total_cost: number | null;
+            /**
+             * Per Day
+             * @description Trips created on each of the last 14 days, oldest first
+             */
+            per_day: components["schemas"]["DayCount"][];
         };
         /** UpdateItemIn */
         UpdateItemIn: {

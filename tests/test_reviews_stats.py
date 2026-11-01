@@ -92,7 +92,13 @@ def test_admin_overview(client, admin, me, world):
     s = client.get(f"{API}/admin/stats", headers=admin)
     assert s.status_code == 200, s.text
     s = s.json()
-    assert set(s) == {"users", "trips", "companies", "offers", "catalog", "reviews", "ai", "needs_attention"}
+    keys = {"users", "trips", "companies", "offers", "catalog", "reviews", "ai", "top_destinations", "needs_attention"}
+    assert set(s) == keys
+    days = s["trips"]["per_day"]
+    assert len(days) == 14 and days == sorted(days, key=lambda d: d["date"]) and days[-1]["trips"] >= 1
+    names = [c["city_name"] for c in s["top_destinations"]]
+    assert f"Alpha {world['tag']}" in names or len(names) == 5  # the busiest cities may be other tests'
+    assert all(0 < c["share"] <= 1 for c in s["top_destinations"])
     assert s["users"]["travelers"] >= 1 and s["users"]["admins"] >= 1
     assert s["trips"]["total"] >= 1 and s["trips"]["shared"] >= 1 and s["trips"]["avg_days"] is not None
     assert s["companies"]["pending"] >= 1 and s["needs_attention"]["pending_companies"] == s["companies"]["pending"]

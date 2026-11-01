@@ -21,3 +21,4 @@ class Interest(IdMixin, Base):
 
     name: Mapped[str] = mapped_column(String(60), unique=True)
     icon: Mapped[str | None] = mapped_column(String(60))
+    description: Mapped[str | None] = mapped_column(String(160))

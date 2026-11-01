@@ -1,5 +1,7 @@
 """Feature: catalog (cities, interests) and places."""
 
+import uuid
+
 import pytest
 
 from tests.conftest import API, auth_header
@@ -56,6 +58,18 @@ def test_interest_crud_and_unique_name(client, admin):
     assert client.post(f"{API}/admin/interests", json={"name": "DIVING"}, headers=admin).status_code == 409
     res = client.patch(f"{API}/admin/interests/{interest['id']}", json={"icon": "waves"}, headers=admin)
     assert res.json()["icon"] == "waves"
+
+
+def test_interest_icon_and_description(client, admin):
+    body = {"name": f"Desert {uuid.uuid4().hex[:6]}", "icon": "mountain", "description": "Dunes, oases and stars"}
+    interest = client.post(f"{API}/admin/interests", json=body, headers=admin)
+    assert interest.status_code == 201, interest.text
+    assert interest.json()["description"] == "Dunes, oases and stars" and interest.json()["icon"] == "mountain"
+    listed = next(i for i in client.get(f"{API}/interests").json() if i["id"] == interest.json()["id"])
+    assert listed["description"] == "Dunes, oases and stars"
+    # only icons from the design's set
+    bad = client.patch(f"{API}/admin/interests/{interest.json()['id']}", json={"icon": "pyramid"}, headers=admin)
+    assert bad.status_code == 422
 
 
 def test_admin_routes_need_admin(client, traveler):

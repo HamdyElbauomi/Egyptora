@@ -3,7 +3,6 @@ import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom
 import { ApiError } from '@/api/client'
 import { AuthProvider } from '@/auth/AuthProvider'
 import { RequireRole } from '@/auth/RequireRole'
-import { AppShell } from '@/components/layout/AppShell'
 import { TravelerShell } from '@/components/layout/TravelerShell'
 import { ToastProvider } from '@/components/ui/Toast'
 import { AuthPage } from '@/features/auth/AuthPage'
@@ -20,11 +19,17 @@ import { DashboardPage } from '@/features/company/DashboardPage'
 import { OfferFormPage } from '@/features/company/OfferFormPage'
 import { OffersPage } from '@/features/company/OffersPage'
 import { ProfilePage } from '@/features/company/ProfilePage'
-import { ComingSoon } from '@/features/portal/ComingSoon'
 import { SharedTripPage } from '@/features/shared/SharedTripPage'
 import { MyTripsPage } from '@/features/trips/MyTripsPage'
 import { ChatPage } from '@/features/chat/ChatPage'
 import { SummaryPage } from '@/features/summary/SummaryPage'
+import { AdminShell } from '@/features/admin/AdminShell'
+import { AiQualityPage } from '@/features/admin/AiQualityPage'
+import { CatalogPage } from '@/features/admin/CatalogPage'
+import { CompaniesPage } from '@/features/admin/CompaniesPage'
+import { HotelsPage as AdminHotelsPage } from '@/features/admin/HotelsPage'
+import { OverviewPage } from '@/features/admin/OverviewPage'
+import { PlacesPage } from '@/features/admin/PlacesPage'
 import { CompanyPage } from '@/features/companies/CompanyPage'
 import { HotelsPage } from '@/features/hotels/HotelsPage'
 import { MyScansPage } from '@/features/scan/MyScansPage'
@@ -111,15 +116,20 @@ export default function App() {
                 <Route path="profile" element={<ProfilePage />} />
               </Route>
               <Route
-                path="/admin/*"
+                path="/admin"
                 element={
                   <RequireRole role="admin">
-                    <AppShell nav={[{ to: '/admin', label: 'Overview' }]} home="/admin">
-                      <ComingSoon area="Admin" />
-                    </AppShell>
+                    <AdminShell />
                   </RequireRole>
                 }
-              />
+              >
+                <Route index element={<OverviewPage />} />
+                <Route path="companies" element={<CompaniesPage />} />
+                <Route path="hotels" element={<AdminHotelsPage />} />
+                <Route path="places" element={<PlacesPage />} />
+                <Route path="catalog" element={<CatalogPage />} />
+                <Route path="ai" element={<AiQualityPage />} />
+              </Route>
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </BrowserRouter>
