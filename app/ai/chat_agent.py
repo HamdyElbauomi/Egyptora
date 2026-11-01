@@ -10,7 +10,8 @@ The contract (the real LLM agent must keep it):
   (that day's hotel offer_id and its full item list in order). Days it doesn't list stay as they are.
   The backend works out the before-state and the cost difference itself.
 
-AI_MOCK=true uses rules_agent() below. It understands a few requests in English and Egyptian Arabic:
+rules_agent() below is the default, and the fallback when USE_LLM=true and the model fails.
+It understands a few requests in English and Egyptian Arabic:
 cheaper / better hotel, make a day lighter, add a place, remove a place.
 """
 
@@ -292,10 +293,17 @@ def rules_agent(body: ChatIn) -> ChatOut:
 
 
 def chat(body: ChatIn) -> ChatOut:
-    if settings.ai_mock:
-        return rules_agent(body)
-    # TODO(Person 3): call the LLM agent here with the same ChatIn, and parse its answer into ChatOut.
-    raise NotImplementedError
+    """USE_LLM=true: the language model agent (chat_llm.py). If the model can't be reached or answers
+    something unusable, the rules agent answers instead, so the chat always works."""
+    if settings.llm_ready and body.trip.get("itinerary"):
+        from app.ai.chat_llm import llm_agent
+        from app.ai.llm import LLMError
+
+        try:
+            return llm_agent(body)
+        except LLMError:
+            pass
+    return rules_agent(body)
 
 
 @router.post("/chat", response_model=ChatOut, summary="Chat agent (AI)")

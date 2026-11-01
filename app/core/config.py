@@ -27,8 +27,21 @@ class Settings(BaseSettings):
     ai_mock: bool = True
     # Exposes /ai/* routes in Swagger so AI owners can test their piece directly.
     expose_ai_routes: bool = True
+    # Language model for chat, hotel search and place Q&A, through any OpenAI-compatible API (OpenRouter by default).
+    # Used when use_llm is true and a key is set; on any model error the rule-based version answers instead.
+    use_llm: bool = False
     llm_api_key: str | None = None
+    llm_base_url: str = "https://openrouter.ai/api/v1"
+    llm_model: str = "nvidia/nemotron-3.5-super-vl:free"
+    llm_timeout_seconds: float = 25.0
+    # Reasoning models (like Nemotron) think before answering; for these short JSON tasks that only adds
+    # latency and can use up the token budget, so it is off unless turned on.
+    llm_reasoning: bool = False
     scan_confidence_threshold: float = 0.6
+
+    @property
+    def llm_ready(self) -> bool:
+        return self.use_llm and bool(self.llm_api_key)
 
     upload_dir: str = "uploads"
     cors_origins: list[str] = ["http://localhost:3000", "http://localhost:5173"]
