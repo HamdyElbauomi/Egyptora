@@ -19,6 +19,7 @@ import re
 from fastapi import APIRouter
 from pydantic import BaseModel
 
+from app.ai.cities import mentions_city
 from app.core.config import settings
 
 router = APIRouter(prefix="/ai", tags=["AI (internal)"])
@@ -89,15 +90,6 @@ WORDS = {
     "add": ("add", "include", "visit", "ضيف", "أضف", "اضف", "زود", "عايز اروح", "عايز أروح"),
     "remove": ("remove", "delete", "skip", "drop", "شيل", "احذف", "الغي", "ألغي", "مش عايز"),
 }
-CITY_ALIASES = {
-    "cairo": ("القاهرة", "القاهره"),
-    "giza": ("الجيزة", "الجيزه"),
-    "luxor": ("الأقصر", "الاقصر"),
-    "aswan": ("أسوان", "اسوان"),
-    "alexandria": ("الإسكندرية", "الاسكندرية", "اسكندرية", "إسكندرية"),
-    "hurghada": ("الغردقة", "الغردقه"),
-    "sharm el-sheikh": ("شرم",),
-}
 ARABIC_DIGITS = str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789")
 
 
@@ -149,8 +141,7 @@ def mentioned_day(text: str, days: list[dict]) -> dict | None:
 
 def mentioned_city(text: str, trip: dict) -> int | None:
     for city in trip["cities"]:
-        name = city["name"].lower()
-        if name in text or any(alias in text for alias in CITY_ALIASES.get(name, ())):
+        if mentions_city(city["name"], text):
             return city["id"]
     return None
 

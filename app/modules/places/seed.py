@@ -1,4 +1,4 @@
-"""Seed: places with verified info for Cairo, Luxor and Aswan.
+"""Seed: places with verified info for the 9 seeded cities.
 
 Facts are summarized from the linked Wikipedia articles. Ticket prices and opening hours change often,
 so they are left empty: the admin fills the current official values from the admin console.
@@ -11,22 +11,22 @@ from sqlalchemy.orm import Session
 from app.modules.catalog.models import City, Interest
 from app.modules.places.models import Place, PlaceInterest
 
-HISTORY, MUSEUMS, FOOD, NILE, MARKETS, RELIGIOUS, PHOTO = (
-    "Ancient history",
-    "Museums",
-    "Food",
-    "Nile and nature",
-    "Markets and shopping",
-    "Religious sites",
-    "Photography",
-)
+# The design's interests (catalog/seed.py). The first seed had finer ones; they map onto these.
+HISTORY = MUSEUMS = RELIGIOUS = "History & monuments"
+FOOD = MARKETS = "Food & markets"
+NILE = CALM = "Calm & slow"
+ADVENTURE = "Adventure"
+SEA = "Sea & beaches"
+ART = "Art & culture"
+PHOTO = "Photography"
+NIGHTS = "Nights out"
 
 WIKI = "https://en.wikipedia.org/wiki/"
 
 PLACES = [
     # ---- Cairo ----
     dict(
-        city="Cairo",
+        city="Cairo & Giza",
         name="Pyramids of Giza",
         type="monument",
         era="Old Kingdom, 4th Dynasty",
@@ -44,7 +44,7 @@ PLACES = [
         interests=[HISTORY, PHOTO],
     ),
     dict(
-        city="Cairo",
+        city="Cairo & Giza",
         name="Great Sphinx of Giza",
         type="monument",
         era="Old Kingdom, 4th Dynasty",
@@ -62,7 +62,7 @@ PLACES = [
         interests=[HISTORY, PHOTO],
     ),
     dict(
-        city="Cairo",
+        city="Cairo & Giza",
         name="Egyptian Museum",
         type="museum",
         era="Opened 1902",
@@ -78,7 +78,7 @@ PLACES = [
         interests=[HISTORY, MUSEUMS],
     ),
     dict(
-        city="Cairo",
+        city="Cairo & Giza",
         name="Khan el-Khalili",
         type="activity",
         era="Founded 1382",
@@ -94,7 +94,7 @@ PLACES = [
         interests=[MARKETS, FOOD, PHOTO],
     ),
     dict(
-        city="Cairo",
+        city="Cairo & Giza",
         name="Cairo Citadel",
         type="monument",
         era="Built 1176-1183",
@@ -111,7 +111,7 @@ PLACES = [
         interests=[HISTORY, RELIGIOUS, PHOTO],
     ),
     dict(
-        city="Cairo",
+        city="Cairo & Giza",
         name="Al-Azhar Mosque",
         type="monument",
         era="Founded 970",
@@ -317,6 +317,358 @@ PLACES = [
         visit_minutes=120,
         interests=[NILE, HISTORY, PHOTO],
     ),
+    # ---- Alexandria ----
+    dict(
+        city="Alexandria",
+        name="Bibliotheca Alexandrina",
+        type="museum",
+        era="Opened 2002",
+        short_description="Modern library and cultural center on the Mediterranean shore.",
+        verified_info=(
+            "The Bibliotheca Alexandrina is a major library and cultural center that opened in 2002. "
+            "It commemorates the ancient Library of Alexandria, one of the largest libraries of the ancient world. "
+            "Besides the main reading room it holds museums, exhibitions and a planetarium."
+        ),
+        source_url=WIKI + "Bibliotheca_Alexandrina",
+        lat=31.2089,
+        lng=29.9092,
+        visit_minutes=120,
+        interests=[HISTORY, ART, PHOTO],
+    ),
+    dict(
+        city="Alexandria",
+        name="Citadel of Qaitbay",
+        type="monument",
+        era="Mamluk period, 1477",
+        short_description="15th-century sea fortress at the end of the Eastern Harbour.",
+        verified_info=(
+            "The Citadel of Qaitbay is a 15th-century defensive fortress built by Sultan Qaitbay in 1477. "
+            "It stands on the site where the Lighthouse of Alexandria, one of the Seven Wonders of the Ancient World, "
+            "once stood."
+        ),
+        source_url=WIKI + "Citadel_of_Qaitbay",
+        lat=31.2140,
+        lng=29.8856,
+        visit_minutes=90,
+        interests=[HISTORY, SEA, PHOTO],
+    ),
+    dict(
+        city="Alexandria",
+        name="Catacombs of Kom El Shoqafa",
+        type="monument",
+        era="Roman period, 2nd century AD",
+        short_description="Underground tombs mixing Egyptian, Greek and Roman art.",
+        verified_info=(
+            "The Catacombs of Kom El Shoqafa are a Roman-era burial site from around the 2nd century AD, "
+            "cut into the rock on several levels. Their decoration mixes Egyptian, Greek and Roman styles. "
+            "They were rediscovered in 1900."
+        ),
+        source_url=WIKI + "Catacombs_of_Kom_El_Shoqafa",
+        lat=31.1786,
+        lng=29.8933,
+        visit_minutes=60,
+        interests=[HISTORY],
+    ),
+    dict(
+        city="Alexandria",
+        name="Montaza Palace Gardens",
+        type="nature",
+        era="Late 19th and early 20th century",
+        short_description="Royal palace gardens and beaches on the eastern edge of the city.",
+        verified_info=(
+            "Montaza is a palace and large park in eastern Alexandria. Khedive Abbas II built the first palace, "
+            "the Salamlek, in 1892, and King Fuad I added the larger Haramlik in 1932. "
+            "The gardens run down to small beaches on the Mediterranean."
+        ),
+        source_url=WIKI + "Montaza_Palace",
+        lat=31.2884,
+        lng=30.0160,
+        visit_minutes=120,
+        interests=[CALM, SEA, PHOTO],
+    ),
+    # ---- Hurghada ----
+    dict(
+        city="Hurghada",
+        name="Giftun Islands",
+        type="nature",
+        short_description="Protected islands with coral reefs, a short boat ride from Hurghada.",
+        verified_info=(
+            "The Giftun Islands are two islands in the Red Sea off Hurghada, inside a protected area. "
+            "Boats from the city's marina take visitors to snorkel and dive on their coral reefs and to swim "
+            "from their beaches."
+        ),
+        source_url=WIKI + "Giftun_Islands",
+        lat=27.1950,
+        lng=33.9500,
+        visit_minutes=360,
+        interests=[SEA, ADVENTURE, PHOTO],
+    ),
+    dict(
+        city="Hurghada",
+        name="Hurghada Marina",
+        type="activity",
+        short_description="Waterfront promenade with cafés, restaurants and boats.",
+        verified_info=(
+            "Hurghada grew from a small fishing village into one of Egypt's largest Red Sea resorts. "
+            "Its marina is the starting point for boat trips and a busy place to eat and walk in the evening."
+        ),
+        source_url=WIKI + "Hurghada",
+        lat=27.2290,
+        lng=33.8460,
+        visit_minutes=120,
+        interests=[NIGHTS, FOOD, SEA],
+    ),
+    dict(
+        city="Hurghada",
+        name="El Dahar Old Town",
+        type="food",
+        short_description="The old center of Hurghada, with its market and local food.",
+        verified_info=(
+            "El Dahar is the oldest part of Hurghada, away from the resort strip. "
+            "Its market streets sell spices, fabrics and souvenirs, and it has small local restaurants."
+        ),
+        source_url=WIKI + "Hurghada",
+        lat=27.2580,
+        lng=33.8120,
+        visit_minutes=90,
+        interests=[FOOD, ART],
+    ),
+    dict(
+        city="Hurghada",
+        name="Eastern Desert Safari",
+        type="activity",
+        short_description="Jeep or quad trip into the desert hills behind the coast.",
+        verified_info=(
+            "The Eastern Desert is the part of the Sahara between the Nile and the Red Sea. "
+            "Its mountains and wadis start just behind Hurghada, and safari trips visit Bedouin camps there."
+        ),
+        source_url=WIKI + "Eastern_Desert",
+        lat=27.1500,
+        lng=33.6500,
+        visit_minutes=240,
+        interests=[ADVENTURE, PHOTO],
+    ),
+    # ---- Sharm El-Sheikh ----
+    dict(
+        city="Sharm El-Sheikh",
+        name="Ras Muhammad National Park",
+        type="nature",
+        era="Protected since 1983",
+        short_description="Egypt's first national park, with famous coral reefs.",
+        verified_info=(
+            "Ras Muhammad, at the southern tip of the Sinai Peninsula, was declared Egypt's first national park "
+            "in 1983. Its coral reefs, including Shark Reef and Yolanda Reef, are among the best-known dive sites "
+            "in the Red Sea."
+        ),
+        source_url=WIKI + "Ras_Muhammad_National_Park",
+        lat=27.7300,
+        lng=34.2500,
+        visit_minutes=300,
+        interests=[SEA, ADVENTURE, PHOTO],
+    ),
+    dict(
+        city="Sharm El-Sheikh",
+        name="Naama Bay",
+        type="activity",
+        short_description="Sheltered bay and the busiest promenade in Sharm.",
+        verified_info=(
+            "Naama Bay is a natural bay north of the old town of Sharm El-Sheikh. "
+            "Its sheltered beach is good for swimming, and its promenade is lined with restaurants and cafés."
+        ),
+        source_url=WIKI + "Naama_Bay",
+        lat=27.9130,
+        lng=34.3290,
+        visit_minutes=180,
+        interests=[SEA, NIGHTS, FOOD],
+    ),
+    dict(
+        city="Sharm El-Sheikh",
+        name="Strait of Tiran Reefs",
+        type="nature",
+        short_description="Four coral reefs in the strait between Sinai and Tiran Island.",
+        verified_info=(
+            "The Strait of Tiran separates the Sinai Peninsula from Tiran Island. "
+            "Its four reefs, Jackson, Woodhouse, Thomas and Gordon, are popular day-boat dive and snorkel sites."
+        ),
+        source_url=WIKI + "Strait_of_Tiran",
+        lat=27.9900,
+        lng=34.4600,
+        visit_minutes=360,
+        interests=[SEA, ADVENTURE],
+    ),
+    # ---- Dahab ----
+    dict(
+        city="Dahab",
+        name="Blue Hole",
+        type="nature",
+        short_description="Deep reef sinkhole north of Dahab, famous with divers.",
+        verified_info=(
+            "The Blue Hole is a submarine sinkhole on the coast north of Dahab, more than 100 meters deep. "
+            "Snorkelers can enjoy its rim, while the deep arch is only for highly trained divers: it is known "
+            "as one of the world's most dangerous dive sites."
+        ),
+        source_url=WIKI + "Blue_Hole_(Red_Sea)",
+        lat=28.5720,
+        lng=34.5370,
+        visit_minutes=240,
+        interests=[SEA, ADVENTURE, PHOTO],
+    ),
+    dict(
+        city="Dahab",
+        name="Dahab Lagoon",
+        type="activity",
+        short_description="Shallow lagoon for windsurfing, kitesurfing and calm swims.",
+        verified_info=(
+            "Dahab is a former Bedouin fishing village on the Gulf of Aqaba, now known for diving and windsurfing. "
+            "Its lagoon has shallow water and steady wind, which makes it a favorite place to learn."
+        ),
+        source_url=WIKI + "Dahab",
+        lat=28.4700,
+        lng=34.5000,
+        visit_minutes=180,
+        interests=[SEA, ADVENTURE, CALM],
+    ),
+    dict(
+        city="Dahab",
+        name="Dahab Promenade",
+        type="food",
+        short_description="Seafront walk of small restaurants and cafés.",
+        verified_info=(
+            "Dahab grew from a Bedouin village into a relaxed seaside town. "
+            "Its seafront walkway is lined with small restaurants serving fresh fish, and it gets lively at sunset."
+        ),
+        source_url=WIKI + "Dahab",
+        lat=28.4990,
+        lng=34.5170,
+        visit_minutes=120,
+        interests=[FOOD, CALM, NIGHTS],
+    ),
+    # ---- Siwa Oasis ----
+    dict(
+        city="Siwa Oasis",
+        name="Shali Fortress",
+        type="monument",
+        era="13th century",
+        short_description="Ruins of the old mud-brick town in the middle of Siwa.",
+        verified_info=(
+            "Shali is the old fortified town of Siwa, built in the 13th century from kershef, a mix of salt and mud. "
+            "Heavy rains in 1926 damaged it badly, and its ruins now stand over the modern town."
+        ),
+        source_url=WIKI + "Siwa_Oasis",
+        lat=29.2040,
+        lng=25.5190,
+        visit_minutes=60,
+        interests=[HISTORY, PHOTO],
+    ),
+    dict(
+        city="Siwa Oasis",
+        name="Temple of the Oracle of Amun",
+        type="monument",
+        era="Late Period, 6th century BC",
+        short_description="Hilltop temple where Alexander the Great consulted the oracle.",
+        verified_info=(
+            "The Temple of the Oracle of Amun stands on a hill in the village of Aghurmi in Siwa. "
+            "Its oracle was famous across the ancient world, and Alexander the Great visited it in 331 BC."
+        ),
+        source_url=WIKI + "Siwa_Oasis",
+        lat=29.2010,
+        lng=25.5470,
+        visit_minutes=60,
+        interests=[HISTORY],
+    ),
+    dict(
+        city="Siwa Oasis",
+        name="Cleopatra's Spring",
+        type="nature",
+        short_description="Natural spring pool among the palm groves.",
+        verified_info=(
+            "Siwa has hundreds of natural springs that water its palm and olive groves. "
+            "Cleopatra's Spring is the best-known one: a stone-lined pool where visitors swim."
+        ),
+        source_url=WIKI + "Siwa_Oasis",
+        lat=29.1920,
+        lng=25.5560,
+        visit_minutes=60,
+        interests=[CALM],
+    ),
+    dict(
+        city="Siwa Oasis",
+        name="Great Sand Sea",
+        type="activity",
+        short_description="Desert dunes for 4x4 trips, sandboarding and sunsets.",
+        verified_info=(
+            "The Great Sand Sea is a vast field of sand dunes in the Western Desert that starts south of Siwa. "
+            "Trips from Siwa cross the dunes and stop at hot and cold springs."
+        ),
+        source_url=WIKI + "Great_Sand_Sea",
+        lat=29.0500,
+        lng=25.4000,
+        visit_minutes=240,
+        interests=[ADVENTURE, PHOTO],
+    ),
+    # ---- Fayoum ----
+    dict(
+        city="Fayoum",
+        name="Wadi El Hitan",
+        type="nature",
+        era="Eocene, about 40 million years ago",
+        short_description="Valley of the Whales: a UNESCO site with fossils of early whales.",
+        verified_info=(
+            "Wadi El Hitan, the Valley of the Whales, is a UNESCO World Heritage Site since 2005. "
+            "It holds fossils of the earliest whales, such as Basilosaurus, from about 40 million years ago, "
+            "when the area was under the sea."
+        ),
+        source_url=WIKI + "Wadi_El_Hitan",
+        lat=29.2700,
+        lng=30.0430,
+        visit_minutes=180,
+        interests=[HISTORY, ADVENTURE, PHOTO],
+    ),
+    dict(
+        city="Fayoum",
+        name="Wadi El Rayan Waterfalls",
+        type="nature",
+        short_description="Desert lakes joined by small waterfalls.",
+        verified_info=(
+            "Wadi El Rayan is a protected area in the desert of Fayoum with two man-made lakes joined by "
+            "waterfalls, the only ones in Egypt. Dunes and springs surround the lakes."
+        ),
+        source_url=WIKI + "Wadi_El_Rayan",
+        lat=29.1950,
+        lng=30.4100,
+        visit_minutes=120,
+        interests=[CALM, PHOTO],
+    ),
+    dict(
+        city="Fayoum",
+        name="Lake Qarun",
+        type="nature",
+        short_description="Large salt lake, good for birdwatching and sunsets.",
+        verified_info=(
+            "Lake Qarun, in the north of the Fayoum depression, is what remains of the ancient Lake Moeris. "
+            "It is a salt lake today, and its shores attract many water birds in winter."
+        ),
+        source_url=WIKI + "Lake_Moeris",
+        lat=29.4700,
+        lng=30.6000,
+        visit_minutes=90,
+        interests=[CALM, PHOTO],
+    ),
+    dict(
+        city="Fayoum",
+        name="Tunis Village",
+        type="activity",
+        short_description="Village of pottery workshops above Lake Qarun.",
+        verified_info=(
+            "Tunis is a village on the edge of the Fayoum oasis overlooking Lake Qarun. "
+            "It is known for its pottery workshops, where local potters make and sell their work."
+        ),
+        source_url=WIKI + "Faiyum_Oasis",
+        lat=29.4110,
+        lng=30.5960,
+        visit_minutes=120,
+        interests=[ART, CALM],
+    ),
 ]
 
 
@@ -334,6 +686,6 @@ def seed(db: Session) -> None:
         place = Place(city_id=cities[city_name], **data)
         db.add(place)
         db.flush()
-        for name in interest_names:
+        for name in dict.fromkeys(interest_names):  # several old tags map to one interest
             if name in interests:
                 db.add(PlaceInterest(place_id=place.id, interest_id=interests[name]))
